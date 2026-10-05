@@ -1,6 +1,9 @@
-# HaboSavey — Architecture
+# Citizen Sentiment — Architecture
 
 > Civic participation web app for **Kesennuma City (気仙沼市), Miyagi, Japan**.
+> **Core (since 2026-10-05, per Kit's README):** city staff publish **A/B image polls**, distribute them on web/app/paper with a
+> QR code, citizens scan → choose A or B → submit (no account needed), and the city gauges sentiment. See §6d.
+> Secondary:
 > Residents (1) answer city surveys and (2) photograph a real place — the harbour, a street, a park —
 > use AI to imagine it *improved*, and the town **votes** on which vision is best.
 
@@ -229,6 +232,27 @@ Staff create, print (PNG/SVG) and deactivate codes in `/admin/qr`; scan and use 
 When `NEXT_PUBLIC_SUPABASE_URL` is empty (dev only): local Postgres, sign in with any email instantly
 (`staff@…`/`admin@…` get those roles), files in `.data/storage` served by `/api/dev-storage`, and a demo image
 editor when no Gemini/OpenAI key is set. Setup: `bash scripts/setup-local-db.sh`. Adding real keys switches it off.
+
+## 6d. A/B polls (core)
+
+```
+polls        id, title_ja/en, question_ja/en, description_ja/en, option_{a,b}_image_path, option_{a,b}_label_ja/en,
+             place_id?, status ['draft'|'open'|'closed'], opens_at?, closes_at?, results_visibility,
+             require_sign_in (default false), verified_only, created_by, created_at
+poll_votes   id, poll_id, choice ['a'|'b'], voter_key, user_id?, ip_hash, qr_code_id?, created_at, updated_at
+             UNIQUE(poll_id, voter_key)
+```
+- **Anonymous by default:** `voter_key` = HMAC of an httpOnly device cookie (`cs_vid`), or `user:<id>` when signed in.
+  One vote per device, changeable while open. Max `POLL_MAX_VOTES_PER_IP` (50) new votes per network per poll.
+  This is softer than signed-in voting (clearing cookies allows a re-vote); staff can switch on `require_sign_in`/`verified_only`.
+- **Channels:** each QR code (`kind=link, target_type=poll`) is one distribution channel. Votes record `qr_code_id` via `?via=<code>`,
+  so results break down by poster/newsletter/web.
+- API: `GET /api/polls`, `GET|PATCH /api/polls/:id`, `PUT /api/polls/:id/vote {choice, via?}`, `POST /api/polls` (staff, also creates a QR),
+  `GET /api/polls/:id/results[?format=csv]` (staff). Images: `POST /api/uploads {bucket:"poll-images"}` (staff); EXIF stripped on create.
+- **AI option B (staff):** upload a real photo as A → `POST /api/generate {originalPath, prompt, sourceBucket:"poll-images", rawPrompt:true}`
+  renders B from a detailed brief (default: Kit's promenade prompt in `components/admin/poll-prompt.ts`). Results stay in `poll-images`;
+  B is labelled "AI image". No daily cap for staff.
+- Screens: `/[locale]/polls`, `/[locale]/p/[id]`, `/[locale]/q/[code]`, `/[locale]/signin`, `/[locale]/admin/polls[/id]`.
 
 ## 7. Folder layout
 

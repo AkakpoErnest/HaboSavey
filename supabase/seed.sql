@@ -46,3 +46,21 @@ insert into public.qr_codes (id, code, kind, target_type, target_id, label) valu
   ('00000000-0000-4000-b000-000000000002', 'harbour7', 'link', 'survey', '00000000-0000-4000-a000-000000000001', '港アンケートのポスター / Harbour survey poster'),
   ('00000000-0000-4000-b000-000000000003', 'naiwan24', 'link', 'place', '00000000-0000-4000-8000-000000000001', '内湾の看板：写真を撮ろう / Naiwan sign: snap this place')
 on conflict (id) do nothing;
+
+-- Demo A/B poll (images: scripts/seed-images.mjs → poll-images/seed/*)
+insert into public.polls (id, title_ja, title_en, question_ja, question_en, description_ja, description_en,
+  option_a_image_path, option_a_label_ja, option_a_label_en, option_b_image_path, option_b_label_ja, option_b_label_en,
+  place_id, status, results_visibility) values
+  ('00000000-0000-4000-c000-000000000001', '内湾の海辺、どちらがいい？', 'Which Naiwan waterfront do you prefer?',
+   '内湾の遊歩道、あなたはどちらの案がいいですか？', 'Which design do you prefer for the Naiwan promenade?',
+   '市では内湾の遊歩道の改修を検討しています。あなたの声を聞かせてください。',
+   'The city is considering a renovation of the Naiwan promenade. Tell us what you think.',
+   'seed/naiwan-a.jpg', '今の防潮堤のまま', 'Keep the current seawall',
+   'seed/naiwan-b.jpg', '木とベンチのある遊歩道', 'Promenade with trees and benches',
+   '00000000-0000-4000-8000-000000000001', 'open', 'after_vote')
+on conflict (id) do nothing;
+
+insert into public.qr_codes (id, code, kind, target_type, target_id, label) values
+  ('00000000-0000-4000-b000-000000000004', 'naiwanab', 'link', 'poll', '00000000-0000-4000-c000-000000000001', '内湾 A/B ポスター（市役所） / Naiwan A/B poster (city hall)'),
+  ('00000000-0000-4000-b000-000000000005', 'naiwanpaper', 'link', 'poll', '00000000-0000-4000-c000-000000000001', '広報けせんぬま 10月号（紙） / City newsletter, Oct (paper)')
+on conflict (id) do nothing;

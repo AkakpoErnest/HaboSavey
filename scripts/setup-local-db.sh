@@ -11,5 +11,6 @@ createdb "$DB_NAME" 2>/dev/null || true
 npx drizzle-kit migrate
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f supabase/triggers.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f supabase/seed.sql
+node scripts/seed-images.mjs
 echo "✅ Local DB ready: $DATABASE_URL"
 echo "   Sign in with any email. staff@… / admin@… emails get staff/admin roles."

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export const UploadBucket = z.enum(["originals", "survey-uploads"]);
+/** poll-images: staff only. */
+export const UploadBucket = z.enum(["originals", "survey-uploads", "poll-images"]);
 
 /** POST /api/uploads: the client then PUTs the file to `uploadUrl`. */
 export const CreateUploadInput = z.object({

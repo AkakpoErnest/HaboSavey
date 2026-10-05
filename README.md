@@ -1,4 +1,4 @@
-# HaboSavey
+# Citizen Sentiment
 
 Japanese-first civic participation app for Kesennuma. Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn-compatible components and next-intl.
 
@@ -12,6 +12,26 @@ Use Node.js 22 or newer. Run `npm ci`, then `npm run dev`. Open http://localhost
 
 `npm run typecheck`, `npm run lint`, and `npm run build` validate the app.
 
-The initial homepage runs without credentials. It includes responsive CSS coastal illustrations, challenge preview dialogs and an accessible sample survey. All content is explicitly marked as illustrative; no survey answers are transmitted or persisted. AI generation, voting, authentication and staff tools are not yet connected.
+### What works today
 
-Copy `.env.example` to `.env.local` when connecting the backend. Never commit credentials. See ARCHITECTURE.md for the contract and CONVERSATION.md / HANDOFF.md for coordination with Claude. Backend paths are owned by Claude.
+- **A/B polls (core):** staff upload image A vs B → a QR code is generated (PNG/SVG/print) → citizens scan, compare and vote with no sign-up
+  (one vote per device, changeable while open) → staff see results by channel (which QR/poster/newsletter) and by day, plus CSV.
+  Pages: `/ja/polls`, `/ja/p/<id>`, `/q/<code>`, staff: `/ja/admin/polls`.
+- **AI option B:** staff upload a real photo as A, and the image AI renders the proposal as B from an editable brief (default: the
+  wooden Japanese promenade prompt, `components/admin/poll-prompt.ts`). Generated images are labelled "AI image".
+  Set `IMAGE_EDIT_PROVIDER=openai` + `OPENAI_API_KEY` (or `gemini` + `GEMINI_API_KEY`) for real renders; without a key, local mode returns demo images.
+- Photo challenges (AI "make it better"), surveys, resident-verification QR codes and moderation are implemented in the API (`app/api`).
+
+### Run locally without any keys
+
+`bash scripts/setup-local-db.sh` (needs local Postgres), then `npm run dev`. With the Supabase URL left blank the app runs in
+**local mode**: sign in with any email (`staff@…` gets staff access), photos are stored in `.data/`, AI images are demos.
+Try `/q/naiwanab` (demo poll QR) and `/ja/admin/polls`.
+
+### Going live
+
+Create a Supabase project (Tokyo), fill `.env.local` from `.env.example`, run `npm run db:migrate`, then
+`supabase/triggers.sql`, `rls.sql`, `storage.sql` (and `seed.sql` for demo data). Set `APP_URL` to the public URL: printed QR codes encode it.
+Never commit credentials.
+
+See ARCHITECTURE.md for the design and API contract, and CONVERSATION.md / HANDOFF.md for coordination between Claude and GPT.

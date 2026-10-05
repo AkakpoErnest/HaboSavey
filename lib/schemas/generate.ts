@@ -16,14 +16,19 @@ export type Preset = z.infer<typeof Preset>;
 export const GenerateInput = z
   .object({
     originalPath: z.string().min(1),
-    prompt: z.string().max(1000).default(""),
+    prompt: z.string().max(4000).default(""),
     presets: z.array(Preset).max(6).default([]),
     variants: z.number().int().min(1).max(4).default(3),
+    /** Staff only: "poll-images" generates an A/B poll option from image A (results land in poll-images). */
+    sourceBucket: z.enum(["originals", "poll-images"]).default("originals"),
+    /** Staff only: use `prompt` verbatim (e.g. a detailed rendering brief) instead of the resident prompt builder. */
+    rawPrompt: z.boolean().default(false),
   })
   .refine((v) => v.prompt.trim().length > 0 || v.presets.length > 0, {
     message: "Give a prompt or at least one preset",
     path: ["prompt"],
-  });
+  })
+  .refine((v) => v.rawPrompt || v.prompt.length <= 1000, { message: "Prompt is too long", path: ["prompt"] });
 export type GenerateInput = z.infer<typeof GenerateInput>;
 
 export const GenerateResponse = z.object({ jobId: Id });

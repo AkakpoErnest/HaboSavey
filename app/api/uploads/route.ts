@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { CreateUploadInput, type CreateUploadResponse } from "@/lib/schemas";
-import { ok, parseJson, route } from "@/lib/api/http";
-import { requireUser } from "@/lib/auth";
+import { HttpError, ok, parseJson, route } from "@/lib/api/http";
+import { isStaff, requireUser } from "@/lib/auth";
 import { createUploadUrl } from "@/lib/storage";
 
 const EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
@@ -10,6 +10,7 @@ const EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as
 export const POST = route(async (req) => {
   const user = await requireUser();
   const { bucket, contentType } = await parseJson(req, CreateUploadInput);
+  if (bucket === "poll-images" && !isStaff(user)) throw new HttpError("forbidden", "Staff only");
   const path = `${user.id}/${randomUUID()}.${EXT[contentType]}`;
   const { uploadUrl, token } = await createUploadUrl(bucket, path);
   return ok<CreateUploadResponse>({ uploadUrl, token, path });

@@ -3,7 +3,7 @@ import { Id, IsoDate } from "./common";
 
 export const QrKind = z.enum(["verify_local", "link"]);
 export type QrKind = z.infer<typeof QrKind>;
-export const QrTargetType = z.enum(["survey", "challenge", "place"]);
+export const QrTargetType = z.enum(["survey", "challenge", "place", "poll"]);
 export type QrTargetType = z.infer<typeof QrTargetType>;
 
 /** Codes are short, URL-safe and case-insensitive. Generated ones avoid 0/o/1/i/l. */
@@ -12,7 +12,7 @@ export const QrCodeString = z.string().regex(/^[a-z0-9]{4,32}$/i).transform((s) 
 /**
  * GET /api/qr/:code. Public: what a scanned code points to. Also counts the scan.
  * Frontend page /[locale]/q/[code] calls this, then:
- *  - link → survey: /surveys/:id · challenge: /challenges/:id · place: /create?placeId=:id
+ *  - link → poll: /p/:id?via=<code> · survey: /surveys/:id · challenge: /challenges/:id · place: /create?placeId=:id
  *  - verify_local → ask to sign in if needed, then POST /api/qr/:code/redeem
  */
 export const QrResolveResponse = z.object({

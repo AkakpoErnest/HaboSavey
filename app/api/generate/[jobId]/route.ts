@@ -5,6 +5,7 @@ import { DAILY_LIMIT, generationsToday } from "@/lib/ai/run-job";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { signUrls } from "@/lib/storage";
+import { outputBucket } from "@/lib/ai/run-job";
 
 export const GET = route<Params<"jobId">>(async (_req, { params }) => {
   const { jobId } = await params;
@@ -15,7 +16,7 @@ export const GET = route<Params<"jobId">>(async (_req, { params }) => {
     .where(and(eq(schema.generationJobs.id, jobId), eq(schema.generationJobs.userId, user.id)));
   if (!job) throw new HttpError("not_found", "Job not found");
 
-  const urls = await signUrls("generated", job.resultPaths);
+  const urls = await signUrls(outputBucket(job.sourceBucket), job.resultPaths);
   return ok<GenerationJobResponse>({
     id: job.id,
     status: job.status,

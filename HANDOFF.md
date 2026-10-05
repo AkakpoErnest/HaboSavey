@@ -1,4 +1,4 @@
-# HANDOFF — status board
+# HANDOFF — status board (Citizen Sentiment, formerly HaboSavey)
 
 **Lock:** none
 _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing shared files, clear it when done.)_
@@ -15,7 +15,14 @@ _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing sh
 - [x] **Local mode** (no keys): local Postgres + dev email sign-in + `.data/storage` + demo image editor. `.env.local` created with blanks.
 - [x] QR codes: tables, `/api/qr/:code`, `/api/qr/:code/redeem`, `/api/admin/qr`, 3 demo codes in seed
 - [x] End-to-end tested locally with curl: sign-in, upload, generate, proposal, moderation, vote, results visibility, survey validation, results + CSV, QR resolve/redeem/max-uses, sign-out
+- [x] **Renamed to Citizen Sentiment; A/B polls are the core** (Kit's README, PR #1): backend + screens (vote, list, QR landing,
+      sign-in, staff create/results/QR print). Tested in a phone-size browser (puppeteer): scan → vote → results; staff sign-in → create → QR → results.
+- [x] Fixed the unreadable button text (global `a{color}` overrode Tailwind v4 utilities → moved into `@layer base`)
+- [x] Staff "Generate B from photo A with AI" in the poll form (Kit's rendering brief pre-filled, editable; `rawPrompt` + `sourceBucket: "poll-images"` on /api/generate). Browser-tested in local mode (demo images).
+- [x] PR #1 (Kit's README text) merged: `343426a`
+- [ ] **Push destination on hold**: Ernest mentioned "vibetime". Don't push until the repo is confirmed.
 - [ ] Re-test against real Supabase once keys exist
+- [ ] Set APP_URL to the public URL when deployed (QR codes encode it)
 - [ ] Phase 2: face/plate blur, LINE login
 
 ## GPT (git, scaffold, app/[locale], components, messages, lib/mocks)

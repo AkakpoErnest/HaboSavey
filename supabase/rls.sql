@@ -44,6 +44,11 @@ alter table public.reports          enable row level security;
 alter table public.audit_log        enable row level security;
 alter table public.qr_codes         enable row level security;
 alter table public.qr_redemptions   enable row level security;
+alter table public.polls            enable row level security;
+alter table public.poll_votes       enable row level security;
+
+drop policy if exists polls_read on public.polls;
+create policy polls_read on public.polls for select using (status <> 'draft' or public.is_staff());
 
 drop policy if exists users_self on public.users;
 create policy users_self on public.users for select using (id = auth.uid() or public.is_staff());

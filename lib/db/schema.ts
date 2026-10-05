@@ -107,6 +107,10 @@ export const generationJobs = pgTable(
     prompt: text("prompt").notNull().default(""),
     presets: text("presets").array().notNull().default(sql`'{}'::text[]`),
     variants: integer("variants").notNull().default(3),
+    /** "originals" for resident photo challenges, "poll-images" for staff A/B polls (results go to the same bucket). */
+    sourceBucket: text("source_bucket").notNull().default("originals"),
+    /** Staff only: send `prompt` to the image model verbatim instead of the resident prompt builder. */
+    rawPrompt: boolean("raw_prompt").notNull().default(false),
     status: jobStatusEnum("status").notNull().default("queued"),
     resultPaths: text("result_paths").array().notNull().default(sql`'{}'::text[]`),
     provider: text("provider"),
@@ -221,7 +225,7 @@ export const auditLog = pgTable("audit_log", {
  *  - link: posters around town that open a survey, a challenge, or the create flow for a place.
  */
 export const qrKindEnum = pgEnum("qr_kind", ["verify_local", "link"]);
-export const qrTargetEnum = pgEnum("qr_target", ["survey", "challenge", "place"]);
+export const qrTargetEnum = pgEnum("qr_target", ["survey", "challenge", "place", "poll"]);
 
 export const qrCodes = pgTable("qr_codes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -248,4 +252,58 @@ export const qrRedemptions = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("qr_redemptions_once").on(t.qrId, t.userId)],
+);
+
+/**
+ * A/B polls (core feature): city staff post image A vs image B with a question; citizens scan a QR
+ * code (web, app or paper), pick one and submit, with no account needed by default.
+ */
+export const pollStatusEnum = pgEnum("poll_status", ["draft", "open", "closed"]);
+export const pollChoiceEnum = pgEnum("poll_choice", ["a", "b"]);
+
+export const polls = pgTable("polls", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  titleJa: text("title_ja").notNull(),
+  titleEn: text("title_en"),
+  questionJa: text("question_ja").notNull(),
+  questionEn: text("question_en"),
+  descriptionJa: text("description_ja").notNull().default(""),
+  descriptionEn: text("description_en"),
+  optionAImagePath: text("option_a_image_path").notNull(),
+  optionALabelJa: text("option_a_label_ja").notNull(),
+  optionALabelEn: text("option_a_label_en"),
+  optionBImagePath: text("option_b_image_path").notNull(),
+  optionBLabelJa: text("option_b_label_ja").notNull(),
+  optionBLabelEn: text("option_b_label_en"),
+  placeId: uuid("place_id").references(() => places.id, { onDelete: "set null" }),
+  status: pollStatusEnum("status").notNull().default("draft"),
+  opensAt: tsz("opens_at"),
+  closesAt: tsz("closes_at"),
+  resultsVisibility: resultsVisibilityEnum("results_visibility").notNull().default("after_vote"),
+  requireSignIn: boolean("require_sign_in").notNull().default(false),
+  verifiedOnly: boolean("verified_only").notNull().default(false),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+});
+
+export const pollVotes = pgTable(
+  "poll_votes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    pollId: uuid("poll_id").notNull().references(() => polls.id, { onDelete: "cascade" }),
+    choice: pollChoiceEnum("choice").notNull(),
+    /** HMAC of the anonymous device cookie (or "user:<id>" when signed in). One vote per key per poll. */
+    voterKey: text("voter_key").notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    /** HMAC of the client IP, used only to cap votes per network. */
+    ipHash: text("ip_hash"),
+    /** Which printed/online QR code the vote came through (null = direct web link). */
+    qrCodeId: uuid("qr_code_id").references(() => qrCodes.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: tsz("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("poll_votes_one_per_voter").on(t.pollId, t.voterKey),
+    index("poll_votes_ip_idx").on(t.pollId, t.ipHash),
+  ],
 );

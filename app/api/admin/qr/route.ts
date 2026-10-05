@@ -11,7 +11,7 @@ export const GET = route(async () => {
   return ok<QrListResponse>({ codes: rows.map(presentQr) });
 });
 
-const TARGET_TABLE = { survey: schema.surveys, challenge: schema.challenges, place: schema.places } as const;
+const TARGET_TABLE = { survey: schema.surveys, challenge: schema.challenges, place: schema.places, poll: schema.polls } as const;
 
 export const POST = route(async (req) => {
   const staff = await requireStaff();

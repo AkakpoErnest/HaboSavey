@@ -4,8 +4,8 @@ import path from "node:path";
 import { isLocalMode } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-export type Bucket = "originals" | "generated" | "survey-uploads";
-export const BUCKETS: readonly Bucket[] = ["originals", "generated", "survey-uploads"];
+export type Bucket = "originals" | "generated" | "survey-uploads" | "poll-images";
+export const BUCKETS: readonly Bucket[] = ["originals", "generated", "survey-uploads", "poll-images"];
 const SIGNED_URL_TTL = 60 * 60; // 1 hour
 
 /** User-owned objects live under "<userId>/…" so ownership checks are a prefix test. */

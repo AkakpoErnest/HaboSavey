@@ -2,7 +2,7 @@ import { and, count, eq, gte } from "drizzle-orm";
 import type { Preset } from "@/lib/schemas";
 import { getDb, schema } from "@/lib/db";
 import { cleanImage } from "@/lib/privacy/clean-image";
-import { download, upload } from "@/lib/storage";
+import { download, upload, type Bucket } from "@/lib/storage";
 import { getImageEditor } from "./image-editor";
 import { moderateText } from "./moderation";
 import { buildEditInstruction, VARIANT_HINTS } from "./prompt";
@@ -22,6 +22,10 @@ export async function generationsToday(userId: string): Promise<number> {
     .where(and(eq(schema.generationJobs.userId, userId), gte(schema.generationJobs.createdAt, startOfJstDay())));
   return row?.n ?? 0;
 }
+
+export const sourceBucketOf = (b: string): Bucket => (b === "poll-images" ? "poll-images" : "originals");
+/** Poll options stay in poll-images; resident proposals go to generated. */
+export const outputBucket = (sourceBucket: string): Bucket => (sourceBucket === "poll-images" ? "poll-images" : "generated");
 
 const EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
 
@@ -43,10 +47,11 @@ export async function runGenerationJob(jobId: string): Promise<void> {
 
     // Strip EXIF/GPS and normalise. The cleaned image replaces the original upload, so the
     // "before" photo shown publicly never carries metadata.
-    const original = await cleanImage(await download("originals", job.originalImagePath));
-    await upload("originals", job.originalImagePath, original, "image/jpeg");
+    const src = sourceBucketOf(job.sourceBucket);
+    const original = await cleanImage(await download(src, job.originalImagePath));
+    await upload(src, job.originalImagePath, original, "image/jpeg");
 
-    const instruction = await buildEditInstruction(job.prompt, job.presets as Preset[]);
+    const instruction = job.rawPrompt ? job.prompt.trim() : await buildEditInstruction(job.prompt, job.presets as Preset[]);
     const settled = await Promise.allSettled(
       Array.from({ length: job.variants }, (_, i) =>
         editor.edit(original, "image/jpeg", `${instruction} ${VARIANT_HINTS[i % VARIANT_HINTS.length]}`.trim()),
@@ -60,7 +65,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         continue;
       }
       const path = `${job.userId}/${job.id}-${i}.${EXT[r.value.mimeType] ?? "png"}`;
-      await upload("generated", path, r.value.bytes, r.value.mimeType);
+      await upload(outputBucket(job.sourceBucket), path, r.value.bytes, r.value.mimeType);
       paths.push(path);
     }
     if (paths.length === 0) throw new UserFacingError("The AI couldn't create an image this time. Please try again.");
