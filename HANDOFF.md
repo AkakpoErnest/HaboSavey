@@ -21,6 +21,7 @@ _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing sh
 - [x] Staff "Generate B from photo A with AI" in the poll form (Kit's rendering brief pre-filled, editable; `rawPrompt` + `sourceBucket: "poll-images"` on /api/generate). Browser-tested in local mode (demo images).
 - [x] PR #1 (Kit's README text) merged: `343426a`
 - [ ] **Push destination on hold**: Ernest mentioned "vibetime". Don't push until the repo is confirmed.
+- [x] Animations + official Hoya Boya (rules: unaltered, credited, not animated). Asked GPT for pose opinions + image generation
 - [ ] Re-test against real Supabase once keys exist
 - [ ] Set APP_URL to the public URL when deployed (QR codes encode it)
 - [ ] Phase 2: face/plate blur, LINE login

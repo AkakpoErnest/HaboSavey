@@ -5,6 +5,7 @@ import {useRouter} from 'next/navigation';
 import {BadgeCheck} from 'lucide-react';
 import type {MeResponse, QrRedeemResponse, QrResolveResponse} from '@/lib/schemas';
 import {Button} from '@/components/ui/button';
+import {HoyaBoya} from '@/components/mascot';
 import {AppShell, ApiFetchError, Notice, api, useL} from './shared';
 
 /** Landing page for printed QR codes: /q/<code>. */
@@ -42,10 +43,10 @@ export function QrLanding({code}: {code: string}) {
   return (
     <AppShell>
       <div className="pt-8">
-        {error && <Notice tone="error">{error}</Notice>}
+        {error && <div className="space-y-4"><Notice tone="error">{error}</Notice><HoyaBoya pose="surprised" height={120}/></div>}
         {!qr && !error && <p className="text-base" aria-busy="true">{L('読み込み中…', 'Loading…')}</p>}
         {qr && !qr.usable && <Notice tone="error">{L('このQRコードは有効期限が切れたか、使用上限に達しています。', 'This QR code has expired or reached its limit.')}</Notice>}
-        {qr?.kind === 'link' && qr.usable && <p className="text-base" aria-busy="true">{L('移動しています…', 'Opening…')}</p>}
+        {qr?.kind === 'link' && qr.usable && <HoyaBoya pose="wave" height={120} say={L('いま開いてるよ…', 'Opening it for you…')}/>}
         {qr?.kind === 'verify_local' && qr.usable && (
           <section className="space-y-5 rounded-2xl border border-[#dee2d6] bg-white p-6">
             <BadgeCheck size={40} className="text-[#214e43]"/>

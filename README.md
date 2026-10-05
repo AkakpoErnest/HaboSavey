@@ -22,6 +22,11 @@ Use Node.js 22 or newer. Run `npm ci`, then `npm run dev`. Open http://localhost
   Set `IMAGE_EDIT_PROVIDER=openai` + `OPENAI_API_KEY` (or `gemini` + `GEMINI_API_KEY`) for real renders; without a key, local mode returns demo images.
 - Photo challenges (AI "make it better"), surveys, resident-verification QR codes and moderation are implemented in the API (`app/api`).
 
+- **Hoya Boya + motion:** Kesennuma's official mascot appears on the home, poll list, thank-you and error screens, using
+  official city artwork (`public/mascot/`, unaltered, always credited, never animated, per the city's design manual).
+  Animations: hero harbour (waves, boats, sun), staggered entrances, scroll reveals, vote confetti and growing result bars,
+  all switched off for users who prefer reduced motion.
+
 ### Run locally without any keys
 
 `bash scripts/setup-local-db.sh` (needs local Postgres), then `npm run dev`. With the Supabase URL left blank the app runs in

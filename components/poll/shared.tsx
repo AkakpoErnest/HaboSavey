@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
+import {useEffect, useState} from 'react';
 import {useLocale} from 'next-intl';
 import {Waves} from 'lucide-react';
 
@@ -62,6 +63,8 @@ export function ResultBars({a, b, labels}: {a: number; b: number; labels: {a: st
   const total = a + b;
   const pct = (n: number) => (total ? Math.round((n / total) * 100) : 0);
   const {L} = useL();
+  const [grown, setGrown] = useState(false);
+  useEffect(() => { const t = requestAnimationFrame(() => setGrown(true)); return () => cancelAnimationFrame(t); }, []);
   return (
     <div className="space-y-3">
       {(['a', 'b'] as const).map((k) => (
@@ -71,7 +74,7 @@ export function ResultBars({a, b, labels}: {a: number; b: number; labels: {a: st
             <span className="tabular-nums">{pct(k === 'a' ? a : b)}%</span>
           </div>
           <div className="h-4 overflow-hidden rounded-full bg-[#e4e8dc]">
-            <div className="h-full rounded-full transition-[width] duration-700" style={{width: `${pct(k === 'a' ? a : b)}%`, background: OPTION_COLORS[k]}}/>
+            <div className="h-full rounded-full transition-[width] duration-700" style={{width: grown ? `${pct(k === 'a' ? a : b)}%` : '0%', background: OPTION_COLORS[k]}}/>
           </div>
         </div>
       ))}
