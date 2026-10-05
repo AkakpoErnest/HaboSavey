@@ -1,0 +1,251 @@
+import { sql } from "drizzle-orm";
+import {
+  boolean,
+  doublePrecision,
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
+
+const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
+const tsz = (name: string) => timestamp(name, { withTimezone: true });
+
+export const roleEnum = pgEnum("role", ["resident", "staff", "admin"]);
+export const localeEnum = pgEnum("locale", ["ja", "en"]);
+export const challengeStatusEnum = pgEnum("challenge_status", ["draft", "open", "voting", "closed"]);
+export const resultsVisibilityEnum = pgEnum("results_visibility", ["always", "after_vote", "after_close"]);
+export const proposalStatusEnum = pgEnum("proposal_status", ["pending", "approved", "rejected", "hidden"]);
+export const jobStatusEnum = pgEnum("job_status", ["queued", "running", "done", "failed"]);
+export const surveyStatusEnum = pgEnum("survey_status", ["draft", "open", "closed"]);
+export const questionTypeEnum = pgEnum("question_type", ["single", "multi", "rating", "text", "photo", "location"]);
+export const reportTargetEnum = pgEnum("report_target", ["proposal", "comment"]);
+export const reportStatusEnum = pgEnum("report_status", ["open", "resolved", "dismissed"]);
+
+/** One row per Supabase auth user (id = auth.users.id; FK + signup trigger live in supabase/rls.sql). */
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey(),
+  email: text("email"),
+  displayName: text("display_name").notNull(),
+  locale: localeEnum("locale").notNull().default("ja"),
+  role: roleEnum("role").notNull().default("resident"),
+  postalCode: text("postal_code"),
+  verifiedLocal: boolean("verified_local").notNull().default(false),
+  createdAt: createdAt(),
+});
+
+export const places = pgTable("places", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nameJa: text("name_ja").notNull(),
+  nameEn: text("name_en"),
+  lat: doublePrecision("lat").notNull(),
+  lng: doublePrecision("lng").notNull(),
+  district: text("district"),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+});
+
+export const challenges = pgTable(
+  "challenges",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    placeId: uuid("place_id").references(() => places.id, { onDelete: "set null" }),
+    titleJa: text("title_ja").notNull(),
+    titleEn: text("title_en"),
+    descriptionJa: text("description_ja").notNull().default(""),
+    descriptionEn: text("description_en"),
+    coverImagePath: text("cover_image_path"),
+    status: challengeStatusEnum("status").notNull().default("draft"),
+    submitOpensAt: tsz("submit_opens_at").notNull(),
+    votingOpensAt: tsz("voting_opens_at").notNull(),
+    closesAt: tsz("closes_at").notNull(),
+    resultsVisibility: resultsVisibilityEnum("results_visibility").notNull().default("after_vote"),
+    verifiedOnlyVoting: boolean("verified_only_voting").notNull().default(false),
+    // FK to proposals is added in SQL (circular reference).
+    winnerProposalId: uuid("winner_proposal_id"),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("challenges_status_idx").on(t.status)],
+);
+
+export const proposals = pgTable(
+  "proposals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    challengeId: uuid("challenge_id").notNull().references(() => challenges.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    prompt: text("prompt").notNull().default(""),
+    originalImagePath: text("original_image_path").notNull(),
+    generatedImagePath: text("generated_image_path").notNull(),
+    lat: doublePrecision("lat"),
+    lng: doublePrecision("lng"),
+    status: proposalStatusEnum("status").notNull().default("pending"),
+    aiFlags: text("ai_flags").array().notNull().default(sql`'{}'::text[]`),
+    voteCount: integer("vote_count").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("proposals_challenge_idx").on(t.challengeId, t.status),
+    index("proposals_author_idx").on(t.authorId),
+  ],
+);
+
+export const generationJobs = pgTable(
+  "generation_jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    originalImagePath: text("original_image_path").notNull(),
+    prompt: text("prompt").notNull().default(""),
+    presets: text("presets").array().notNull().default(sql`'{}'::text[]`),
+    variants: integer("variants").notNull().default(3),
+    status: jobStatusEnum("status").notNull().default("queued"),
+    resultPaths: text("result_paths").array().notNull().default(sql`'{}'::text[]`),
+    provider: text("provider"),
+    error: text("error"),
+    createdAt: createdAt(),
+    finishedAt: tsz("finished_at"),
+  },
+  (t) => [index("generation_jobs_user_day_idx").on(t.userId, t.createdAt)],
+);
+
+export const votes = pgTable(
+  "votes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    challengeId: uuid("challenge_id").notNull().references(() => challenges.id, { onDelete: "cascade" }),
+    proposalId: uuid("proposal_id").notNull().references(() => proposals.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  // One vote per person per challenge.
+  (t) => [uniqueIndex("votes_one_per_challenge").on(t.challengeId, t.userId), index("votes_proposal_idx").on(t.proposalId)],
+);
+
+export const comments = pgTable("comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  proposalId: uuid("proposal_id").notNull().references(() => proposals.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  status: proposalStatusEnum("status").notNull().default("approved"),
+  createdAt: createdAt(),
+});
+
+export const surveys = pgTable("surveys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  titleJa: text("title_ja").notNull(),
+  titleEn: text("title_en"),
+  descriptionJa: text("description_ja").notNull().default(""),
+  descriptionEn: text("description_en"),
+  status: surveyStatusEnum("status").notNull().default("draft"),
+  opensAt: tsz("opens_at"),
+  closesAt: tsz("closes_at"),
+  anonymous: boolean("anonymous").notNull().default(false),
+  verifiedOnly: boolean("verified_only").notNull().default(false),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+});
+
+export type QuestionOptionRow = { value: string; labelJa: string; labelEn: string | null };
+
+export const surveyQuestions = pgTable(
+  "survey_questions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    surveyId: uuid("survey_id").notNull().references(() => surveys.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    type: questionTypeEnum("type").notNull(),
+    labelJa: text("label_ja").notNull(),
+    labelEn: text("label_en"),
+    options: jsonb("options").$type<QuestionOptionRow[]>().notNull().default([]),
+    required: boolean("required").notNull().default(true),
+  },
+  (t) => [index("survey_questions_survey_idx").on(t.surveyId, t.position)],
+);
+
+export const surveyResponses = pgTable(
+  "survey_responses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    surveyId: uuid("survey_id").notNull().references(() => surveys.id, { onDelete: "cascade" }),
+    // Always set (for one-response-per-person), but never exposed for anonymous surveys.
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    submittedAt: tsz("submitted_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("survey_responses_one_per_user").on(t.surveyId, t.userId)],
+);
+
+export const surveyAnswers = pgTable(
+  "survey_answers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    responseId: uuid("response_id").notNull().references(() => surveyResponses.id, { onDelete: "cascade" }),
+    questionId: uuid("question_id").notNull().references(() => surveyQuestions.id, { onDelete: "cascade" }),
+    value: jsonb("value").notNull(),
+  },
+  (t) => [index("survey_answers_question_idx").on(t.questionId)],
+);
+
+export const reports = pgTable("reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  targetType: reportTargetEnum("target_type").notNull(),
+  targetId: uuid("target_id").notNull(),
+  reporterId: uuid("reporter_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(),
+  note: text("note"),
+  status: reportStatusEnum("status").notNull().default("open"),
+  createdAt: createdAt(),
+});
+
+export const auditLog = pgTable("audit_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  actorId: uuid("actor_id").references(() => users.id, { onDelete: "set null" }),
+  action: text("action").notNull(),
+  targetType: text("target_type").notNull(),
+  targetId: uuid("target_id"),
+  meta: jsonb("meta").notNull().default({}),
+  createdAt: createdAt(),
+});
+
+/**
+ * QR codes printed by city staff. Each encodes `${APP_URL}/q/<code>`.
+ *  - verify_local: handed out at city hall / events; scanning marks the resident as a verified local.
+ *  - link: posters around town that open a survey, a challenge, or the create flow for a place.
+ */
+export const qrKindEnum = pgEnum("qr_kind", ["verify_local", "link"]);
+export const qrTargetEnum = pgEnum("qr_target", ["survey", "challenge", "place"]);
+
+export const qrCodes = pgTable("qr_codes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(),
+  kind: qrKindEnum("kind").notNull(),
+  targetType: qrTargetEnum("target_type"),
+  targetId: uuid("target_id"),
+  label: text("label").notNull(),
+  maxUses: integer("max_uses"),
+  useCount: integer("use_count").notNull().default(0),
+  scanCount: integer("scan_count").notNull().default(0),
+  expiresAt: tsz("expires_at"),
+  active: boolean("active").notNull().default(true),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+});
+
+export const qrRedemptions = pgTable(
+  "qr_redemptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    qrId: uuid("qr_id").notNull().references(() => qrCodes.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("qr_redemptions_once").on(t.qrId, t.userId)],
+);
