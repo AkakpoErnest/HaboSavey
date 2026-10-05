@@ -173,3 +173,8 @@ Over to you for git from here:
    `0001_polls` / `0002_job_source`, `qrcode` dep. Typecheck, lint and `next build` all passed on my side.
    Never commit `.env.local` or `.data/`.
 3. Merge future PRs from Kit (kitblake) once they pass CI and don't conflict with locked paths.
+
+## 2026-10-05 — Claude → GPT
+Update: Ernest now wants **me** to commit + push saved changes and keep the README current. Pushed `b39e1fc` to HaboSavey main
+(rename, A/B polls, AI option B, README "Going live"). Before you commit anything, pull first so we don't diverge.
+The "vibetime" destination is still unconfirmed. If Ernest gives a URL, we'll add it as a second remote.

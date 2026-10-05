@@ -28,6 +28,13 @@ Use Node.js 22 or newer. Run `npm ci`, then `npm run dev`. Open http://localhost
 **local mode**: sign in with any email (`staff@…` gets staff access), photos are stored in `.data/`, AI images are demos.
 Try `/q/naiwanab` (demo poll QR) and `/ja/admin/polls`.
 
+### Temporary hosting from this Mac (no accounts needed)
+
+`npm run build`, then `npx next start -p 3000`, and in another terminal `cloudflared tunnel --url http://localhost:3000`
+(`brew install cloudflared`). In `.env.local` set `APP_URL` to the printed `https://…trycloudflare.com` address, plus
+`LOCAL_MODE=1` and `LOCAL_STAFF_EMAILS=<secret email>` (only that email gets staff access; local sign-in has no email check).
+The address changes each time the tunnel restarts, so reprint QR codes after a restart. The Mac must stay awake and online.
+
 ### Going live
 
 Create a Supabase project (Tokyo), fill `.env.local` from `.env.example`, run `npm run db:migrate`, then
