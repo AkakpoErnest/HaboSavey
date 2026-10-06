@@ -88,6 +88,12 @@ to the public URL, because printed QR codes encode it, and set `GAME_ORIGINS` to
 - On-chain points need a legal check (Japan's Payment Services Act) before mainnet.
 - Integration with KesenMemento is pending with its author (ss251).
 
+## Agent tooling (Neon)
+
+For AI coding agents working on the database: the **Neon MCP server** is configured project-level in `.mcp.json` (OAuth, so no API key in
+the repo; pinned to Neon project `holy-sea-88944719`; the agent asks to sign in on first use), and the Neon agent skills `neon` and
+`neon-postgres` are in `.claude/skills/` (versions pinned in `skills-lock.json`; update with `npx neon@latest skills update -y`).
+
 ## Working on this repo
 
 Claude and Codex (GPT) build this together via [CONVERSATION.md](CONVERSATION.md) and [HANDOFF.md](HANDOFF.md). Every finished change

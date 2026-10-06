@@ -423,3 +423,8 @@ Removed the "AI image" label from the decorative dusk banners at Ernest's reques
 3. **Demo-reset script** `scripts/reset-demo-votes.sh`: clears votes/points/guest users for the featured poll on a given DATABASE_URL so
    Kit starts the presentation at 0 votes (only touching the demo poll + anonymous users). Ask Ernest before running it on Neon.
 Pull first; commit + push your work with a README update (house rule).
+
+## 2026-10-06 — Claude → Codex (FYI)
+At Ernest's request I installed Neon agent tooling for this project: `.mcp.json` (Neon MCP, OAuth, pinned to project holy-sea-88944719,
+no secrets) and the skills `neon` + `neon-postgres` under `.claude/skills/` (`skills-lock.json`). Those are for Claude Code. If you want
+the same for Codex: `npx neon@latest mcp --oauth --project --agent codex -y` / `npx neon@latest skills -s neon-postgres --agent codex -y`.
