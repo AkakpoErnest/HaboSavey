@@ -1,5 +1,5 @@
 import { createHmac, randomUUID } from "node:crypto";
-import { count, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import type { Poll, PollStatus, PollTally } from "@/lib/schemas";
 import { HttpError } from "@/lib/api/http";
@@ -17,11 +17,46 @@ const hmac = (v: string) => createHmac("sha256", secret()).update(v).digest("hex
 /** Max votes from one network (IP) per poll: shared Wi-Fi at city hall or schools is expected. */
 export const MAX_VOTES_PER_IP = Number(process.env.POLL_MAX_VOTES_PER_IP ?? 50);
 
-export async function loadPollRow(id: string): Promise<PollRow> {
-  const [row] = await getDb().select().from(schema.polls).where(eq(schema.polls.id, id));
+/** Slugs: 3–40 chars, lowercase letters/digits/hyphens, not starting/ending with a hyphen. */
+export const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/;
+/** Words that are routes under /[locale]/poll/… */
+export const RESERVED_SLUGS = new Set(["result", "results", "current", "new", "admin"]);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function slugify(text: string): string {
+  return text.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "");
+}
+
+/**
+ * Loads a poll by "current" (the featured open poll, else the newest open one), by uuid, or by slug.
+ */
+export async function loadPollRow(ref: string): Promise<PollRow> {
+  const db = getDb();
+  let row: PollRow | undefined;
+  if (ref === "current") {
+    const open = await db.select().from(schema.polls).where(eq(schema.polls.status, "open")).orderBy(desc(schema.polls.featured), desc(schema.polls.createdAt));
+    row = open.find((p) => effectivePollStatus(p) === "open") ?? open[0];
+  } else if (UUID_RE.test(ref)) {
+    [row] = await db.select().from(schema.polls).where(eq(schema.polls.id, ref));
+  } else if (SLUG_RE.test(ref)) {
+    [row] = await db.select().from(schema.polls).where(eq(schema.polls.slug, ref));
+  }
   if (!row) throw new HttpError("not_found", "Poll not found");
   return row;
 }
+
+/** A free slug based on `base` (adds -2, -3… if taken). */
+export async function uniqueSlug(base: string): Promise<string> {
+  let root = slugify(base);
+  if (root.length < 3 || RESERVED_SLUGS.has(root)) root = `poll-${Math.random().toString(36).slice(2, 8)}`;
+  for (let i = 1; i < 50; i++) {
+    const candidate = i === 1 ? root : `${root.slice(0, 36)}-${i}`;
+    const [taken] = await getDb().select({ id: schema.polls.id }).from(schema.polls).where(eq(schema.polls.slug, candidate));
+    if (!taken) return candidate;
+  }
+  return `poll-${Date.now().toString(36)}`;
+}
+
 
 export function effectivePollStatus(p: PollRow, now = new Date()): PollStatus {
   if (p.status !== "open") return p.status;
@@ -34,6 +69,8 @@ export async function presentPolls(rows: PollRow[]): Promise<Poll[]> {
   const urls = await signUrls("poll-images", rows.flatMap((r) => [r.optionAImagePath, r.optionBImagePath]));
   return rows.map((p) => ({
     id: p.id,
+    slug: p.slug ?? p.id,
+    featured: p.featured,
     titleJa: p.titleJa,
     titleEn: p.titleEn,
     questionJa: p.questionJa,

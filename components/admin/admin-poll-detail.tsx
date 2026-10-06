@@ -87,7 +87,8 @@ export function AdminPollDetail({id}: {id: string}) {
               )}
               <div className="flex flex-wrap gap-3">
                 <Button asChild variant="outline"><a href={`/api/polls/${id}/results?format=csv`}><Download size={18}/>CSV</a></Button>
-                <Button asChild variant="outline"><Link href={`/${locale}/p/${id}`} target="_blank"><ExternalLink size={18}/>{L('投票ページ', 'Voting page')}</Link></Button>
+                <Button asChild variant="outline"><Link href={`/${locale}/poll/${poll.slug}/result`} target="_blank"><ExternalLink size={18}/>{L('発表用の結果画面', 'Presentation results')}</Link></Button>
+                <Button asChild variant="outline"><Link href={`/${locale}/poll/${poll.slug}`} target="_blank"><ExternalLink size={18}/>{L('投票ページ', 'Voting page')}</Link></Button>
                 {poll.status !== 'open' && <Button onClick={() => setStatus('open')}>{L('公開する', 'Open poll')}</Button>}
                 {poll.status === 'open' && <Button variant="outline" onClick={() => setStatus('closed')}>{L('投票を終了する', 'Close poll')}</Button>}
               </div>

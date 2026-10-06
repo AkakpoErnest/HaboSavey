@@ -17,6 +17,10 @@ export type PollOption = z.infer<typeof PollOption>;
 
 export const Poll = z.object({
   id: Id,
+  /** Memorable URL id: /[locale]/poll/<slug> */
+  slug: z.string(),
+  /** Shown at /[locale]/poll */
+  featured: z.boolean(),
   titleJa: z.string(),
   titleEn: z.string().nullable(),
   questionJa: z.string(),
@@ -51,6 +55,10 @@ export const PollDetailResponse = z.object({
   /** Why voting isn't possible: sign_in | verify | not_open | closed */
   blockedReason: z.enum(["sign_in", "verify", "not_open", "closed"]).nullable(),
   results: PollTally.nullable(),
+  /** Points this viewer would get for voting now (0 = none, e.g. already voted or not eligible). */
+  votePoints: z.number().int(),
+  /** True when those points would be held on this device until the person signs in (guest earning). */
+  votePointsGuest: z.boolean(),
 });
 export type PollDetailResponse = z.infer<typeof PollDetailResponse>;
 
@@ -66,11 +74,17 @@ export const PollVoteResponse = z.object({
   results: PollTally.nullable(),
   /** Participation points just awarded (verified residents, first vote on this poll). */
   pointsAwarded: z.number().int(),
+  /** Awarded as guest points on this device; they move into the account after sign-in. */
+  pointsPending: z.boolean(),
 });
 export type PollVoteResponse = z.infer<typeof PollVoteResponse>;
 
 /** POST /api/polls (staff). Image paths come from POST /api/uploads with bucket "poll-images". */
 export const CreatePollInput = z.object({
+  /** Optional memorable URL id; generated from the English (or Japanese) title if omitted. */
+  slug: z.string().regex(/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/, "3–40 lowercase letters, digits or hyphens").optional(),
+  /** Make this the poll at /[locale]/poll (unfeatures the others). */
+  featured: z.boolean().default(false),
   titleJa: z.string().min(1).max(200),
   titleEn: z.string().max(200).optional(),
   questionJa: z.string().min(1).max(300),
@@ -94,6 +108,7 @@ export type CreatePollInput = z.infer<typeof CreatePollInput>;
 /** PATCH /api/polls/:id (staff) */
 export const UpdatePollInput = z.object({
   status: PollStatus.optional(),
+  featured: z.boolean().optional(),
   titleJa: z.string().min(1).max(200).optional(),
   titleEn: z.string().max(200).nullable().optional(),
   questionJa: z.string().min(1).max(300).optional(),

@@ -1,7 +1,7 @@
-import { and, desc, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { CreatePollInput, type ListPollsResponse } from "@/lib/schemas";
 import { HttpError, ok, parseJson, route } from "@/lib/api/http";
-import { presentPolls, voterIdentity } from "@/lib/api/polls";
+import { presentPolls, RESERVED_SLUGS, uniqueSlug, voterIdentity } from "@/lib/api/polls";
 import { newQrCode, presentQr } from "@/lib/api/qr";
 import { getCurrentUser, isStaff, requireStaff } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
@@ -46,10 +46,19 @@ export const POST = route(async (req) => {
       }),
   );
   const db = getDb();
+  if (input.slug) {
+    if (RESERVED_SLUGS.has(input.slug)) throw new HttpError("bad_request", "That URL name is reserved");
+    const [taken] = await db.select({ id: schema.polls.id }).from(schema.polls).where(eq(schema.polls.slug, input.slug));
+    if (taken) throw new HttpError("conflict", "That URL name is already used by another poll");
+  }
+  const slug = input.slug ?? (await uniqueSlug(input.titleEn || input.titleJa));
   const result = await db.transaction(async (tx) => {
+    if (input.featured) await tx.update(schema.polls).set({ featured: false });
     const [poll] = await tx
       .insert(schema.polls)
       .values({
+        slug,
+        featured: input.featured,
         titleJa: input.titleJa,
         titleEn: input.titleEn,
         questionJa: input.questionJa,

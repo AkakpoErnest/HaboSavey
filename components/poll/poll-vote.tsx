@@ -1,13 +1,16 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import Link from 'next/link';
-import {Check, Maximize2, X} from 'lucide-react';
+import {Check, Coins, Maximize2, X} from 'lucide-react';
 import type {PollChoice, PollDetailResponse, PollVoteResponse} from '@/lib/schemas';
-import {announcePoints} from '@/components/points/feedback';
+import {announcePoints, pointsName} from '@/components/points/feedback';
 import {Button} from '@/components/ui/button';
 import {HoyaBoya} from '@/components/mascot';
 import {AppShell, ApiFetchError, Notice, OPTION_COLORS, ResultBars, api, pick, useL} from './shared';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** One page to vote: /[locale]/poll (featured poll), /[locale]/poll/<slug>. After voting it becomes the thank-you view. */
 export function PollVote({id, via}: {id: string; via?: string}) {
   const {locale, L} = useL();
   const [data, setData] = useState<PollDetailResponse | null>(null);
@@ -16,34 +19,45 @@ export function PollVote({id, via}: {id: string; via?: string}) {
   const [submitting, setSubmitting] = useState(false);
   const [changing, setChanging] = useState(false);
   const [zoom, setZoom] = useState<PollChoice | null>(null);
-  const [justVoted, setJustVoted] = useState(false);
+  const [award, setAward] = useState<{points: number; pending: boolean} | null>(null);
   const zoomRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    api<PollDetailResponse>(`/api/polls/${id}`)
-      .then((d) => { setData(d); setSelected(d.myChoice); })
+    api<PollDetailResponse>(`/api/polls/${encodeURIComponent(id)}`)
+      .then((d) => {
+        setData(d);
+        setSelected(d.myChoice);
+        // Old uuid links show the memorable URL instead.
+        if (UUID_RE.test(id) && d.poll.slug && d.poll.slug !== id) {
+          window.history.replaceState(null, '', `/${locale}/poll/${d.poll.slug}${window.location.search}`);
+        }
+      })
       .catch((e: ApiFetchError) => setError(e.status === 404 ? L('この投票は見つかりませんでした。', 'This poll could not be found.') : e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => { if (zoom) zoomRef.current?.showModal(); else zoomRef.current?.close(); }, [zoom]);
 
-  if (error) return <AppShell><div className="space-y-4 pt-6"><Notice tone="error">{error}</Notice><HoyaBoya pose="surprised" height={120}/></div></AppShell>;
+  if (error && !data) return <AppShell><div className="space-y-4 pt-6"><Notice tone="error">{error}</Notice><HoyaBoya pose="surprised" height={120}/></div></AppShell>;
   if (!data) return <AppShell><div className="space-y-4 pt-6" aria-busy="true"><div className="cs-skeleton h-8 w-3/4 rounded"/><div className="cs-skeleton aspect-[3/2] rounded-2xl"/><div className="cs-skeleton aspect-[3/2] rounded-2xl"/></div></AppShell>;
 
   const {poll} = data;
   const label = (k: PollChoice) => { const o = poll.options[k === 'a' ? 0 : 1]; return pick(locale, o.labelJa, o.labelEn); };
   const voted = data.myChoice !== null && !changing;
+  const pName = pointsName(locale);
+  const pointsHref = `/${locale}/me/points`;
+  const signInForPoints = `/${locale}/signin?next=${encodeURIComponent(pointsHref)}`;
+  const selfPath = id === 'current' ? `/${locale}/poll` : `/${locale}/poll/${poll.slug}`;
 
   async function submit() {
     if (!selected) return;
     setSubmitting(true); setError(null);
     try {
-      const res = await api<PollVoteResponse>(`/api/polls/${id}/vote`, {method: 'PUT', json: {choice: selected, ...(via ? {via} : {})}});
-      setData((d) => d && {...d, myChoice: res.myChoice, results: res.results});
-      announcePoints(res.pointsAwarded);
+      const res = await api<PollVoteResponse>(`/api/polls/${poll.id}/vote`, {method: 'PUT', json: {choice: selected, ...(via ? {via} : {})}});
+      setData((d) => d && {...d, myChoice: res.myChoice, results: res.results, votePoints: 0});
+      if (res.pointsAwarded > 0) setAward({points: res.pointsAwarded, pending: res.pointsPending});
+      if (!res.pointsPending) announcePoints(res.pointsAwarded);
       setChanging(false);
-      setJustVoted(true);
       window.scrollTo({top: 0, behavior: 'smooth'});
     } catch (e) {
       setError((e as Error).message);
@@ -52,13 +66,52 @@ export function PollVote({id, via}: {id: string; via?: string}) {
     }
   }
 
+  // ── Thank-you view: no question repeated, just thanks, points earned and a link to the points page ──
+  if (voted) {
+    return (
+      <AppShell>
+        <section className="relative overflow-hidden pt-6 text-center" aria-live="polite">
+          {award && <Confetti/>}
+          <h1 className="cs-rise text-[2rem] font-bold leading-snug tracking-tight">{L('ありがとう！\nはまらいんや！', 'Thank you!\nHamarainya!')}</h1>
+          <div className="mt-4 flex justify-center"><HoyaBoya pose="cheer" height={170}/></div>
+
+          {award ? (
+            <div className="cs-rise cs-d2 mx-auto mt-6 max-w-sm rounded-2xl border border-[#dee2d6] bg-white p-5">
+              <p className="flex items-center justify-center gap-2 text-2xl font-bold text-[#a8532f]"><Coins size={26}/>+{award.points} pt</p>
+              <p className="mt-1 text-base">{L(`${pName}をゲットしました！`, `You earned ${pName}!`)}</p>
+              {award.pending ? (
+                <>
+                  <p className="mt-2 text-sm text-[#4d5d4f]">{L('ポイントはこの端末に保存されています。ログインするとアカウントに受け取れます。', 'Your points are saved on this device. Sign in to keep them in your account.')}</p>
+                  <Button asChild className="mt-4 w-full text-base"><Link href={signInForPoints}>{L('ログインしてポイントを受け取る', 'Sign in to collect your points')}</Link></Button>
+                </>
+              ) : (
+                <Button asChild className="mt-4 w-full text-base"><Link href={pointsHref}>{L('ポイントを見る', 'See my points')}</Link></Button>
+              )}
+            </div>
+          ) : (
+            <p className="mx-auto mt-6 max-w-sm text-base text-[#4d5d4f]">{L('ご参加ありがとうございました。', 'Thank you for taking part.')} <Link className="font-semibold underline underline-offset-4" href={pointsHref}>{L('ポイントを見る', 'See my points')}</Link></p>
+          )}
+
+          <p className="mt-6 text-sm text-[#5b6b5c]">{L('あなたの選択：', 'Your choice: ')}<b>{data.myChoice!.toUpperCase()} · {label(data.myChoice!)}</b></p>
+          {data.results && (
+            <div className="mx-auto mt-4 max-w-sm rounded-2xl border border-[#dee2d6] bg-white p-5 text-left">
+              <ResultBars a={data.results.a} b={data.results.b} labels={{a: label('a'), b: label('b')}}/>
+            </div>
+          )}
+          {data.canVote && <button className="mt-4 min-h-11 text-sm font-semibold text-[#4d5d4f] underline underline-offset-4" onClick={() => setChanging(true)}>{L('投票を変更する', 'Change my vote')}</button>}
+        </section>
+      </AppShell>
+    );
+  }
+
   const blocked = {
-    sign_in: <>{L('この投票にはログインが必要です。', 'Please sign in to vote in this poll.')} <Link className="font-semibold underline" href={`/${locale}/signin?next=${encodeURIComponent(`/${locale}/p/${id}${via ? `?via=${via}` : ''}`)}`}>{L('ログイン', 'Sign in')}</Link></>,
+    sign_in: <>{L('この投票にはログインが必要です。', 'Please sign in to vote in this poll.')} <Link className="font-semibold underline" href={`/${locale}/signin?next=${encodeURIComponent(selfPath + (via ? `?via=${via}` : ''))}`}>{L('ログイン', 'Sign in')}</Link></>,
     verify: L('この投票は、住民確認済みの方のみ参加できます。市役所などで配布している住民確認QRコードを読み取ってください。', 'Only verified Kesennuma residents can vote. Scan a resident QR code from city hall to verify.'),
     not_open: L('この投票はまだ始まっていません。', 'This poll has not opened yet.'),
     closed: L('この投票は終了しました。', 'This poll has closed.'),
   } as const;
 
+  // ── The form ──
   return (
     <AppShell>
       <article className="pt-4">
@@ -66,25 +119,19 @@ export function PollVote({id, via}: {id: string; via?: string}) {
         <h1 className="cs-rise cs-d1 text-[1.75rem] font-bold leading-snug tracking-tight">{pick(locale, poll.questionJa, poll.questionEn)}</h1>
         {(poll.descriptionJa || poll.descriptionEn) && <p className="cs-rise cs-d2 mt-3 text-base leading-relaxed text-[#4d5d4f]">{pick(locale, poll.descriptionJa, poll.descriptionEn)}</p>}
 
-        {voted && (
-          <section className="relative mt-6 space-y-4 overflow-hidden rounded-2xl border border-[#dee2d6] bg-white p-5" aria-live="polite">
-            {justVoted && <Confetti/>}
-            <HoyaBoya pose="cheer" height={110} say={L('ありがとう！はまらいんや！', 'Thank you! Hamarainya!')}/>
-            <p className="flex items-center gap-2 text-lg font-bold text-[#1d4a2c]"><span className="cs-pop grid size-8 place-items-center rounded-full bg-[#214e43] text-white"><Check size={18}/></span>{L('投票ありがとうございました！', 'Thanks for voting!')}</p>
-            <p className="text-base">{L('あなたの選択：', 'Your choice: ')}<b>{data.myChoice!.toUpperCase()} · {label(data.myChoice!)}</b></p>
-            {data.results
-              ? <ResultBars a={data.results.a} b={data.results.b} labels={{a: label('a'), b: label('b')}}/>
-              : <p className="text-base text-[#4d5d4f]">{L('結果は投票終了後に公開されます。', 'Results will be published when the poll closes.')}</p>}
-            {data.canVote && <button className="min-h-11 text-base font-semibold underline underline-offset-4" onClick={() => setChanging(true)}>{L('投票を変更する', 'Change my vote')}</button>}
-          </section>
+        {data.votePoints > 0 && data.canVote && (
+          <p className="cs-rise cs-d2 mt-4 flex items-start gap-2 rounded-xl bg-[#fbeee2] p-3 text-base font-semibold text-[#7a3a1c]">
+            <Coins size={20} className="mt-0.5 shrink-0"/>
+            <span>{L(`投票すると${pName}が${data.votePoints}ptもらえます！`, `Vote and get ${data.votePoints} ${pName}!`)}</span>
+          </p>
         )}
 
-        {!data.canVote && data.blockedReason && !voted && <div className="mt-6"><Notice>{blocked[data.blockedReason]}</Notice></div>}
-        {!data.canVote && data.blockedReason === 'closed' && data.results && !voted && (
+        {!data.canVote && data.blockedReason && <div className="mt-6"><Notice>{blocked[data.blockedReason]}</Notice></div>}
+        {!data.canVote && data.blockedReason === 'closed' && data.results && (
           <section className="mt-4 rounded-2xl border border-[#dee2d6] bg-white p-5"><h2 className="mb-3 text-lg font-bold">{L('結果', 'Results')}</h2><ResultBars a={data.results.a} b={data.results.b} labels={{a: label('a'), b: label('b')}}/></section>
         )}
 
-        <fieldset className="mt-6 grid gap-4 sm:grid-cols-2" disabled={!data.canVote || voted}>
+        <fieldset className="mt-6 grid gap-4 sm:grid-cols-2" disabled={!data.canVote}>
           <legend className="sr-only">{L('AかBを選んでください', 'Choose A or B')}</legend>
           {poll.options.map((o, i) => {
             const isSel = selected === o.key;
@@ -120,7 +167,7 @@ export function PollVote({id, via}: {id: string; via?: string}) {
         <p className="mt-6 text-sm leading-relaxed text-[#5b6b5c]">{L('投票は匿名です。1台の端末から1票、投票期間中は変更できます。', 'Votes are anonymous. One vote per device, and you can change it while the poll is open.')}</p>
       </article>
 
-      {data.canVote && !voted && (
+      {data.canVote && (
         <div className="fixed inset-x-0 bottom-0 border-t border-[#dee2d6] bg-[#f8f9f3]/95 px-4 pt-3 backdrop-blur" style={{paddingBottom: 'max(12px, env(safe-area-inset-bottom))'}}>
           <div className="mx-auto flex max-w-xl gap-3">
             {changing && <Button variant="outline" className="text-base" onClick={() => { setChanging(false); setSelected(data.myChoice); }}>{L('戻る', 'Cancel')}</Button>}

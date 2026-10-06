@@ -9,9 +9,10 @@ const jstDay = (d: Date) => new Date(d.getTime() + 9 * 3600_000).toISOString().s
 
 /** GET /api/polls/:id/results (staff). ?format=csv → one anonymous row per vote. */
 export const GET = route<Params<"id">>(async (req, { params }) => {
-  const { id } = await params;
+  const { id: ref } = await params;
   await requireStaff();
-  const row = await loadPollRow(id);
+  const row = await loadPollRow(ref);
+  const id = row.id;
   const votes = await getDb()
     .select({
       choice: schema.pollVotes.choice,

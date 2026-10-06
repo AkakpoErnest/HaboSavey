@@ -252,6 +252,7 @@ poll_votes   id, poll_id, choice ['a'|'b'], voter_key, user_id?, ip_hash, qr_cod
 - **AI option B (staff):** upload a real photo as A → `POST /api/generate {originalPath, prompt, sourceBucket:"poll-images", rawPrompt:true}`
   renders B from a detailed brief (default: Kit's promenade prompt in `components/admin/poll-prompt.ts`). Results stay in `poll-images`;
   B is labelled "AI image". No daily cap for staff.
+- Poll URLs: `/[locale]/poll` (featured), `/[locale]/poll/[slug]`, results `/[locale]/poll[/slug]/result` (staff, live). API refs accept `current`, a uuid or a slug. Old `/[locale]/p/[id]` redirects.
 - Screens: `/[locale]/polls`, `/[locale]/p/[id]`, `/[locale]/q/[code]`, `/[locale]/signin`, `/[locale]/admin/polls[/id]`.
 
 ## 7. Folder layout

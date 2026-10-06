@@ -31,7 +31,7 @@ export async function api<T>(url: string, init?: RequestInit & {json?: unknown})
 }
 
 /** Mobile-first page frame shared by the poll and admin screens. */
-export function AppShell({children, wide = false}: {children: React.ReactNode; wide?: boolean}) {
+export function AppShell({children, wide = false, hidePoints = false}: {children: React.ReactNode; wide?: boolean; hidePoints?: boolean}) {
   const {locale, L} = useL();
   const pathname = usePathname();
   const other = locale === 'ja' ? 'en' : 'ja';
@@ -47,7 +47,7 @@ export function AppShell({children, wide = false}: {children: React.ReactNode; w
           {L('English', '日本語')}
         </Link>
       </header>
-      <PointsHeader/>
+      {!hidePoints && <PointsHeader/>}
       <main id="main" className={`mx-auto px-4 pb-32 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}>{children}</main>
     </div>
   );

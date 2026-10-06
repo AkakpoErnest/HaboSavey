@@ -40,6 +40,7 @@ export function PointsHistory() {
           <p>{L('今日の獲得', 'Earned today')}: {data.todayEarned} / {data.dailyCap} pt</p>
           <p className="mt-2 text-sm">{L('1日の上限は日本時間の午前0時にリセットされます。', 'The daily limit resets at midnight Japan time.')}</p>
         </div>
+        {data.claimedGuestPoints > 0 && <Notice tone="success">{L(`この端末で獲得した ${data.claimedGuestPoints}pt をアカウントに受け取りました！`, `We moved ${data.claimedGuestPoints} pt you earned on this device into your account!`)}</Notice>}
         {!data.eligible && <Notice><Link className="font-semibold underline" href="#resident-verification">{L('住民確認でポイントがもらえます', 'Verify your residency to earn points')}</Link></Notice>}
         <section><h2 className="text-xl font-bold">{L('ポイントの貯め方', 'How to earn')}</h2><ul className="space-y-3">{Object.entries(data.rules).map(([reason, amount]) => <li className="flex justify-between gap-4" key={reason}><span>{reasons[reason as PointsReason]}</span><span className="shrink-0 font-semibold">+{amount} pt</span></li>)}</ul>
           <p className="mt-4 text-sm leading-relaxed">{L('住民確認済みの方が対象です。投票・回答・承認は各企画につき1回、QRは各コードにつき1日1回。1日の上限により獲得数が少なくなることがあります。', 'For verified residents. Polls, responses and approvals earn once per activity; QR check-ins once per code per day. The daily cap may reduce an award.')}</p></section>

@@ -1,4 +1,4 @@
-import { and, eq, gt, gte, sql } from "drizzle-orm";
+import { and, eq, gt, gte, inArray, isNull, sql } from "drizzle-orm";
 import type { PointsReason } from "@/lib/schemas";
 import { startOfJstDay } from "@/lib/ai/run-job";
 import { getDb, schema } from "@/lib/db";
@@ -50,8 +50,15 @@ export async function earnedToday(userId: string, exec: Exec = getDb()): Promise
  * resident, already got points for this refId, or hit the daily cap). Never throws on those cases,
  * so callers can award after the main action without affecting it.
  */
+/**
+ * POINTS_OPEN_EARNING=1 lets anyone earn (signed in or not), e.g. for a live demo. Default: verified residents only,
+ * because open earning is easy to farm with extra devices.
+ */
+export const openEarning = () => process.env.POINTS_OPEN_EARNING === "1";
+export const canEarn = (user: UserLike | null) => !!user && (user.verifiedLocal || openEarning());
+
 export async function awardPoints(user: UserLike | null, reason: EarnReason, refId: string): Promise<number> {
-  if (!user?.verifiedLocal) return 0;
+  if (!user || !canEarn(user)) return 0;
   try {
     return await withUserLock(user.id, async (tx) => {
       const amount = Math.min(EARN_RULES[reason], DAILY_CAP - (await earnedToday(user.id, tx)));
@@ -79,3 +86,60 @@ export async function pointsBalance(userId: string): Promise<number> {
 
 /** "YYYY-MM-DD" in Japan time, for once-per-day refIds. */
 export const jstDate = (d = new Date()) => new Date(d.getTime() + 9 * 3600_000).toISOString().slice(0, 10);
+
+/** Guest points for a device (open earning only). Returns the amount awarded (0 if already awarded or disabled). */
+export async function awardGuestPoints(voterKey: string | null, reason: EarnReason, refId: string): Promise<number> {
+  if (!openEarning() || !voterKey) return 0;
+  try {
+    const inserted = await getDb()
+      .insert(schema.guestPoints)
+      .values({ voterKey, amount: EARN_RULES[reason], reason, refId })
+      .onConflictDoNothing()
+      .returning({ id: schema.guestPoints.id });
+    return inserted.length ? EARN_RULES[reason] : 0;
+  } catch (err) {
+    console.error("[points] guest award failed", reason, refId, err);
+    return 0;
+  }
+}
+
+/**
+ * Moves this device's unclaimed guest points into the signed-in user's ledger (skipping anything the user already
+ * earned for the same action). Returns the amount claimed.
+ */
+export async function claimGuestPoints(userId: string, voterKeys: string[]): Promise<number> {
+  const keys = voterKeys.filter((k) => k.startsWith("dev:"));
+  if (keys.length === 0) return 0;
+  return withUserLock(userId, async (tx) => {
+    const rows = await tx
+      .select()
+      .from(schema.guestPoints)
+      .where(and(inArray(schema.guestPoints.voterKey, keys), isNull(schema.guestPoints.claimedBy)));
+    let claimed = 0;
+    for (const r of rows) {
+      const ins = await tx
+        .insert(schema.pointsLedger)
+        .values({ userId, amount: r.amount, reason: r.reason, refId: r.refId })
+        .onConflictDoNothing()
+        .returning({ id: schema.pointsLedger.id });
+      if (ins.length) claimed += r.amount;
+      await tx.update(schema.guestPoints).set({ claimedBy: userId, claimedAt: new Date() }).where(eq(schema.guestPoints.id, r.id));
+    }
+    return claimed;
+  });
+}
+
+/** Guest points this user claimed from this device in the last `minutes` (for a "points collected" notice). */
+export async function recentlyClaimed(userId: string, voterKeys: string[], minutes = 10): Promise<number> {
+  const keys = voterKeys.filter((k) => k.startsWith("dev:"));
+  if (keys.length === 0) return 0;
+  const [row] = await getDb()
+    .select({ n: sql<number>`coalesce(sum(${schema.guestPoints.amount}), 0)::int` })
+    .from(schema.guestPoints)
+    .where(and(
+      inArray(schema.guestPoints.voterKey, keys),
+      eq(schema.guestPoints.claimedBy, userId),
+      gte(schema.guestPoints.claimedAt, new Date(Date.now() - minutes * 60_000)),
+    ));
+  return row?.n ?? 0;
+}

@@ -24,6 +24,7 @@ _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing sh
 - [x] Animations + official Hoya Boya (rules: unaltered, credited, not animated). Asked GPT for pose opinions + image generation
 - [x] Points Phase 1 (off-chain ledger + API) and contracts (Foundry, 16 tests): `e617bbe`; game plan docs/POINTS-AND-GAME.md
 - [x] KesenMemento integration kit + /api/game + /connect (`a0ca433`), E2E-tested with a stand-in game
+- [x] Kit's demo flow: one-page vote at /ja/poll, slugs (/ja/poll/promenade), thank-you view with points, guest points (POINTS_OPEN_EARNING), live results /ja/poll/result. Browser-tested end to end
 - [ ] Re-test against real Supabase once keys exist
 - [ ] Set APP_URL to the public URL when deployed (QR codes encode it)
 - [ ] Phase 2: face/plate blur, LINE login

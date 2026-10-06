@@ -11,18 +11,29 @@ Citizen Sentiment is a simple app that enables Kesennuma city officials to gathe
 
 | Area | What it does | Where |
 |---|---|---|
-| **A/B polls (core)** | Staff upload image A and B; a QR code is generated (PNG/SVG/print). Citizens scan, compare and vote **with no sign-up** (one vote per device, changeable while open). | `/ja/polls`, `/ja/p/<id>`, `/q/<code>` |
-| **Results** | Totals, votes per day, and votes per channel (each poster/newsletter/web QR code), plus CSV export (Excel-ready Japanese). | `/ja/admin/polls/<id>` |
+| **A/B polls (core)** | Staff upload image A and B; a QR code is generated (PNG/SVG/print). Citizens scan, compare and vote **on one page with no sign-up** (one vote per device, changeable while open). Each poll has a memorable URL; the featured poll is at `/ja/poll` (what demo flyers point to). The list page skips straight to the poll when only one is open. Old `/p/<id>` links redirect. | `/ja/poll`, `/ja/poll/<slug>` (e.g. `/ja/poll/promenade`), `/q/<code>` |
+| **Thank-you** | After voting: "ありがとう！はまらいんや！" with Hoya Boya, the points just earned, and a link to the points page. The question is not repeated. | same URL |
+| **Live results (presentation)** | Big projector view of the vote count and percentages, refreshing every 3 s, with a QR code to vote. Staff sign-in required. | `/ja/poll/result`, `/ja/poll/<slug>/result` |
+| **Results (admin)** | Totals, votes per day, and votes per channel (each poster/newsletter/web QR code), plus CSV export (Excel-ready Japanese). | `/ja/admin/polls/<id>` |
 | **AI option B** | Staff upload a real photo as A; an image model renders the proposal as B from an editable brief (default: Kit's wooden promenade prompt). Labelled "AI image". | staff poll form |
 | **Staff admin** | Create polls, print QR codes, open/close polls, moderation queue. | `/ja/admin/polls` |
 | **Resident verification** | City-hall QR codes mark a resident as verified (needed to earn points, optional for voting). | `/q/<code>` |
-| **Points (phase 1)** | Verified residents earn はまらいんやポイント for taking part, never for a choice: vote +10, survey +20, approved proposal +50, on-site QR check-in +5/day. Capped at 100/day (atomic, per-user lock). Balance chip in the header, history page, and "+N pt" notices after poll votes and QR check-ins. | `/ja/me/points`, `GET /api/points` |
+| **Points (phase 1)** | Verified residents earn はまらいんやポイント for taking part, never for a choice: vote +10, survey +20, approved proposal +50, on-site QR check-in +5/day. Capped at 100/day (atomic, per-user lock). **Demo mode** `POINTS_OPEN_EARNING=1`: anyone earns, and anonymous voters get guest points kept on their device that move into their account when they sign in (easy to farm, so turn it off after demos). Balance chip in the header, history page, and "+N pt" notices after poll votes and QR check-ins. | `/ja/me/points`, `GET /api/points` |
 | **Game link** | KesenMemento (3D Kesennuma game) players connect their account and collect place stamps and ship-act badges (+2 / +10 pt, own daily cap). Connections can be listed and revoked from the points page (`/ja/me/points`), with confirmation and clear connection status. | `/ja/connect`, `/api/game/*`, [`integrations/kesenmemento/`](integrations/kesenmemento/INTEGRATION.md) |
 | **On-chain (phase 2–3)** | Ethereum-L2 contracts: HamaPoints (non-transferable between wallets, only into approved projects), GameVault, soulbound collectibles. 16 Foundry tests. Not deployed yet. | [`contracts/`](contracts/), [`docs/POINTS-AND-GAME.md`](docs/POINTS-AND-GAME.md) |
 | **Hoya Boya** | Kesennuma's official mascot on home, list, thank-you and error screens: official city art, unaltered, always credited, never animated. | `components/mascot.tsx` |
 | **Motion** | Living harbour hero, entrances, scroll reveals, vote confetti, growing result bars. Off under reduced motion. | `app/globals.css` |
 | **Artwork** | AI-generated concept art by Codex: a wooden-promenade option B (`naiwan-b-promenade.jpg`, a speculative concept, always labelled "AI image"), a share card and app icons. The bay-at-dusk image is also the photo banner on the polls page and the homepage vote band (`components/backdrop.tsx`, WebP 800/1200 px), always labelled "AI image". Prompts in `public/images/ASSETS.md`. | `public/images/`, `public/icons/` |
 | Also in the API | Photo challenges ("make it better" with AI), surveys, email magic-link sign-in. | `app/api/` |
+
+## Demo script (Kit's presentation)
+
+1. Flyers show the A/B images and a QR code to **`https://<host>/ja/poll`** (print it from `/ja/admin/polls/<poll>`, or any QR generator).
+2. The audience scans, picks A or B and submits, with no sign-up. They see "ありがとう！はまらいんや！" and **+10 pt**
+   (with `POINTS_OPEN_EARNING=1`), and can sign in to keep the points.
+3. At the end, open **`https://<host>/ja/poll/result`** on the projector, signed in with the staff email, to show the live count.
+
+To feature a different poll at `/ja/poll`, tick "Show this poll at /poll" when creating it (or `PATCH /api/polls/<slug> {featured:true}`).
 
 ## Run locally (no accounts or keys needed)
 

@@ -25,7 +25,7 @@ export function QrLanding({code}: {code: string}) {
         announcePoints(r.pointsAwarded);
         if (r.kind === 'link' && r.usable && r.target) {
           const t = r.target;
-          const path = t.type === 'poll' ? `/p/${t.id}?via=${code}` : t.type === 'survey' ? `/surveys/${t.id}` : t.type === 'challenge' ? `/challenges/${t.id}` : `/create?placeId=${t.id}`;
+          const path = t.type === 'poll' ? `/poll/${t.id}?via=${code}` : t.type === 'survey' ? `/surveys/${t.id}` : t.type === 'challenge' ? `/challenges/${t.id}` : `/create?placeId=${t.id}`;
           router.replace(`/${locale}${path}`);
         }
         if (r.kind === 'verify_local') api<MeResponse>('/api/me').then((m) => setSignedIn(!!m.me));

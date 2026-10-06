@@ -108,6 +108,8 @@ function CreatePollForm({onCreated}: {onCreated: (p: Poll, qr: QrCodeInfo | null
     return p;
   }
   const [openNow, setOpenNow] = useState(true);
+  const [slug, setSlug] = useState('');
+  const [featured, setFeatured] = useState(true);
   const [resultsVisibility, setRV] = useState<CreatePollInput['resultsVisibility']>('after_vote');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +127,7 @@ function CreatePollForm({onCreated}: {onCreated: (p: Poll, qr: QrCodeInfo | null
         optionA: {imagePath: a, labelJa: f.aJa, labelEn: f.aEn || undefined},
         optionB: {imagePath: b, labelJa: f.bJa, labelEn: f.bEn || undefined},
         status: openNow ? 'open' : 'draft', resultsVisibility, requireSignIn: false, verifiedOnly: false, createQr: true,
+        featured, ...(slug.trim() ? {slug: slug.trim()} : {}),
       };
       const r = await api<{poll: Poll; qr: QrCodeInfo | null}>('/api/polls', {method: 'POST', json: body});
       onCreated(r.poll, r.qr);
@@ -158,7 +161,11 @@ function CreatePollForm({onCreated}: {onCreated: (p: Poll, qr: QrCodeInfo | null
           <label key={v} className="flex min-h-11 items-center gap-3 text-base"><input type="radio" name="rv" className="size-5 accent-[#214e43]" checked={resultsVisibility === v} onChange={() => setRV(v)}/>{t}</label>
         ))}
       </fieldset>
+      <label className="block space-y-1 text-base font-semibold">{L('URL名（任意・英小文字と数字とハイフン）', 'URL name (optional: lowercase letters, digits, hyphens)')}
+        <span className="flex items-center gap-1 font-normal text-[#5b6b5c]">/poll/<input className={`${input} min-h-11`} value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} placeholder="promenade" pattern="[a-z0-9][a-z0-9-]{1,38}[a-z0-9]"/></span>
+      </label>
       <label className="flex min-h-11 items-center gap-3 text-base"><input type="checkbox" className="size-5 accent-[#214e43]" checked={openNow} onChange={(e) => setOpenNow(e.target.checked)}/>{L('すぐに公開する', 'Open immediately')}</label>
+      <label className="flex min-h-11 items-center gap-3 text-base"><input type="checkbox" className="size-5 accent-[#214e43]" checked={featured} onChange={(e) => setFeatured(e.target.checked)}/>{L('/poll で表示する投票にする（チラシのQRコード用）', 'Show this poll at /poll (for flyer QR codes)')}</label>
       {error && <Notice tone="error">{error}</Notice>}
       <Button type="submit" className="w-full text-base" disabled={busy}>{busy ? L('作成中…', 'Creating…') : L('投票を作成してQRコードを発行', 'Create poll + QR code')}</Button>
     </form>

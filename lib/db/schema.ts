@@ -263,6 +263,10 @@ export const pollChoiceEnum = pgEnum("poll_choice", ["a", "b"]);
 
 export const polls = pgTable("polls", {
   id: uuid("id").primaryKey().defaultRandom(),
+  /** Memorable URL id: /[locale]/poll/<slug>. Unique; lowercase letters, digits, hyphens. */
+  slug: text("slug").unique(),
+  /** The poll shown at /[locale]/poll (e.g. the one printed on demo flyers). */
+  featured: boolean("featured").notNull().default(false),
   titleJa: text("title_ja").notNull(),
   titleEn: text("title_en"),
   questionJa: text("question_ja").notNull(),
@@ -366,4 +370,23 @@ export const gameLinks = pgTable(
     revokedAt: tsz("revoked_at"),
   },
   (t) => [index("game_links_user_idx").on(t.userId)],
+);
+
+/**
+ * Points earned without an account (only when POINTS_OPEN_EARNING=1, e.g. for a live demo), keyed by the anonymous
+ * voter device key. Moved into points_ledger when that device signs in (claimed_by set).
+ */
+export const guestPoints = pgTable(
+  "guest_points",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    voterKey: text("voter_key").notNull(),
+    amount: integer("amount").notNull(),
+    reason: pointsReasonEnum("reason").notNull(),
+    refId: text("ref_id").notNull(),
+    claimedBy: uuid("claimed_by").references(() => users.id, { onDelete: "set null" }),
+    claimedAt: tsz("claimed_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("guest_points_once").on(t.voterKey, t.reason, t.refId)],
 );

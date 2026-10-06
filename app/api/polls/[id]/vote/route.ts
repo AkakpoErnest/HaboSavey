@@ -4,14 +4,15 @@ import { HttpError, ok, parseJson, route, type Params } from "@/lib/api/http";
 import { effectivePollStatus, loadPollRow, MAX_VOTES_PER_IP, resultsVisibleFor, tallyPoll, voterIdentity } from "@/lib/api/polls";
 import { getCurrentUser, isStaff } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
-import { awardPoints } from "@/lib/points";
+import { awardGuestPoints, awardPoints, openEarning } from "@/lib/points";
 
 /** Cast or change my A/B vote. No account needed unless the poll requires it. */
 export const PUT = route<Params<"id">>(async (req, { params }) => {
-  const { id } = await params;
+  const { id: ref } = await params;
   const { choice, via } = await parseJson(req, PollVoteInput);
   const user = await getCurrentUser();
-  const poll = await loadPollRow(id);
+  const poll = await loadPollRow(ref);
+  const id = poll.id;
 
   const status = effectivePollStatus(poll);
   if (status !== "open") throw new HttpError("conflict", status === "closed" ? "This poll has closed" : "This poll is not open yet");
@@ -58,10 +59,12 @@ export const PUT = route<Params<"id">>(async (req, { params }) => {
       });
   }
   // Points reward taking part (once per poll), not the choice. Changing a vote can't earn again.
-  const pointsAwarded = await awardPoints(user, "poll_vote", id);
+  const pointsPending = !user && openEarning();
+  const pointsAwarded = user ? await awardPoints(user, "poll_vote", id) : await awardGuestPoints(primaryKey, "poll_vote", id);
   return ok<PollVoteResponse>({
     myChoice: choice,
     results: resultsVisibleFor(poll, isStaff(user), true) ? await tallyPoll(id) : null,
     pointsAwarded,
+    pointsPending: pointsPending && pointsAwarded > 0,
   });
 });

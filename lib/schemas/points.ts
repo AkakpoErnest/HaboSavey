@@ -17,6 +17,8 @@ export type PointsReason = z.infer<typeof PointsReason>;
  * Only verified residents earn (`eligible`); there's a daily cap (JST).
  */
 export const PointsResponse = z.object({
+  /** Guest points from this device moved into the account in the last 10 minutes (for a notice; 0 if none). */
+  claimedGuestPoints: z.number().int(),
   balance: z.number().int(),
   eligible: z.boolean(),
   todayEarned: z.number().int(),

@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useState} from 'react';
 import Link from 'next/link';
+import {useRouter} from 'next/navigation';
 import {ArrowRight, Check} from 'lucide-react';
 import type {ListPollsResponse} from '@/lib/schemas';
 import {DuskBanner} from '@/components/backdrop';
@@ -9,14 +10,24 @@ import {AppShell, Notice, OPTION_COLORS, api, pick, useL} from './shared';
 
 export function PollList() {
   const {locale, L} = useL();
+  const router = useRouter();
   const [polls, setPolls] = useState<ListPollsResponse['polls'] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => { api<ListPollsResponse>('/api/polls').then((d) => setPolls(d.polls)).catch((e) => setError(e.message)); }, []);
+  useEffect(() => {
+    api<ListPollsResponse>('/api/polls')
+      .then((d) => {
+        // Only one poll is open: skip the list and go straight to voting (one page, no extra click).
+        const open = d.polls.filter((p) => p.status === 'open');
+        if (open.length === 1) { router.replace(`/${locale}/poll`); return; }
+        setPolls(d.polls);
+      })
+      .catch((e) => setError(e.message));
+  }, [locale, router]);
 
   const open = polls?.filter((p) => p.status === 'open') ?? [];
   const closed = polls?.filter((p) => p.status === 'closed') ?? [];
   const Card = ({p, i}: {p: ListPollsResponse['polls'][number]; i: number}) => (
-    <Link href={`/${locale}/p/${p.id}`} className={`cs-rise cs-lift cs-press block overflow-hidden rounded-2xl border border-[#dee2d6] bg-white cs-d${Math.min(i + 2, 5)}`}>
+    <Link href={`/${locale}/poll/${p.slug}`} className={`cs-rise cs-lift cs-press block overflow-hidden rounded-2xl border border-[#dee2d6] bg-white cs-d${Math.min(i + 2, 5)}`}>
       <div className="grid grid-cols-2 gap-0.5 bg-[#dee2d6]">
         {p.options.map((o) => (
           <div key={o.key} className="relative aspect-[4/3] bg-[#e4e8dc]">

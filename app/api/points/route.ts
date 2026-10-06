@@ -3,10 +3,15 @@ import type { PointsResponse } from "@/lib/schemas";
 import { ok, route } from "@/lib/api/http";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
-import { DAILY_CAP, EARN_RULES, earnedToday, pointsBalance } from "@/lib/points";
+import { voterIdentity } from "@/lib/api/polls";
+import { canEarn, claimGuestPoints, recentlyClaimed, DAILY_CAP, EARN_RULES, earnedToday, pointsBalance } from "@/lib/points";
 
 export const GET = route(async () => {
   const user = await requireUser();
+  // Points earned on this device before signing in (demo/open earning) move into the account now.
+  const deviceKeys = (await voterIdentity(null, false)).keys;
+  await claimGuestPoints(user.id, deviceKeys);
+  const claimed = await recentlyClaimed(user.id, deviceKeys);
   const [balance, todayEarned, history] = await Promise.all([
     pointsBalance(user.id),
     earnedToday(user.id),
@@ -18,8 +23,9 @@ export const GET = route(async () => {
       .limit(100),
   ]);
   return ok<PointsResponse>({
+    claimedGuestPoints: claimed,
     balance,
-    eligible: user.verifiedLocal,
+    eligible: canEarn(user),
     todayEarned,
     dailyCap: DAILY_CAP,
     rules: EARN_RULES,

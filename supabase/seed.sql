@@ -48,10 +48,10 @@ insert into public.qr_codes (id, code, kind, target_type, target_id, label) valu
 on conflict (id) do nothing;
 
 -- Demo A/B poll (images: scripts/seed-images.mjs → poll-images/seed/*)
-insert into public.polls (id, title_ja, title_en, question_ja, question_en, description_ja, description_en,
+insert into public.polls (id, slug, featured, title_ja, title_en, question_ja, question_en, description_ja, description_en,
   option_a_image_path, option_a_label_ja, option_a_label_en, option_b_image_path, option_b_label_ja, option_b_label_en,
   place_id, status, results_visibility) values
-  ('00000000-0000-4000-c000-000000000001', '内湾の海辺、どちらがいい？', 'Which Naiwan waterfront do you prefer?',
+  ('00000000-0000-4000-c000-000000000001', 'promenade', true, '内湾の海辺、どちらがいい？', 'Which Naiwan waterfront do you prefer?',
    '内湾の遊歩道、あなたはどちらの案がいいですか？', 'Which design do you prefer for the Naiwan promenade?',
    '市では内湾の遊歩道の改修を検討しています。あなたの声を聞かせてください。',
    'The city is considering a renovation of the Naiwan promenade. Tell us what you think.',
