@@ -105,7 +105,7 @@ same push.
 
 ## Docs
 
-[ARCHITECTURE.md](ARCHITECTURE.md) (design + API contract) · [docs/POINTS-AND-GAME.md](docs/POINTS-AND-GAME.md) · [docs/points-chain-options.md](docs/points-chain-options.md) ·
+[ARCHITECTURE.md](ARCHITECTURE.md) (design + API contract) · [docs/POINTS-AND-GAME.md](docs/POINTS-AND-GAME.md) · [docs/points-chain-options.md](docs/points-chain-options.md) · [docs/LAUNCH.md](docs/LAUNCH.md) (public launch plan) · [docs/city-application-hoyaboya.md](docs/city-application-hoyaboya.md) (Hoya Boya approval request, draft) ·
 [integrations/kesenmemento/INTEGRATION.md](integrations/kesenmemento/INTEGRATION.md) · coordination between Claude and Codex/GPT:
 [CONVERSATION.md](CONVERSATION.md), [HANDOFF.md](HANDOFF.md).
 
