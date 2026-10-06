@@ -66,8 +66,22 @@ export function verifyLocalToken(bucket: string, p: string, kind: "get" | "put",
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
+/** Public, cacheable buckets: poll images are shown to everyone, so their URLs and responses can be cached. */
+export const PUBLIC_BUCKETS: readonly Bucket[] = ["poll-images"];
+
+/**
+ * Expiry rounded to a fixed window so the same file gets the same URL for a while (lets browsers and the CDN cache it):
+ * public buckets for 1–2 days, private ones for 1–2 hours. Uploads (PUT) stay short-lived.
+ */
+function stableExp(bucket: Bucket, kind: "get" | "put") {
+  const now = Math.floor(Date.now() / 1000);
+  if (kind === "put") return now + SIGNED_URL_TTL;
+  const window = PUBLIC_BUCKETS.includes(bucket) ? 86400 : 3600;
+  return (Math.floor(now / window) + 2) * window;
+}
+
 function localUrl(bucket: Bucket, p: string, kind: "get" | "put") {
-  const exp = Math.floor(Date.now() / 1000) + SIGNED_URL_TTL;
+  const exp = stableExp(bucket, kind);
   const url = new URL(`/api/dev-storage/${bucket}/${p}`, appUrl());
   url.searchParams.set("exp", String(exp));
   url.searchParams.set("token", sign(bucket, p, kind, exp));

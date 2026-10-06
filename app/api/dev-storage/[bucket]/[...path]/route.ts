@@ -1,7 +1,7 @@
 import path from "node:path";
 import { fail } from "@/lib/api/http";
 import { isLocalMode } from "@/lib/env";
-import { BUCKETS, readLocalObject, verifyLocalToken, writeLocalObject, type Bucket } from "@/lib/storage";
+import { BUCKETS, PUBLIC_BUCKETS, readLocalObject, verifyLocalToken, writeLocalObject, type Bucket } from "@/lib/storage";
 
 /**
  * Local-mode stand-in for Supabase Storage signed URLs (files on disk, or Netlify Blobs when hosted on Netlify).
@@ -26,9 +26,15 @@ export async function GET(req: Request, ctx: Ctx) {
   const bytes = await readLocalObject(r.bucket, r.p);
   if (!bytes) return fail("not_found", "Not found");
   const ext = path.extname(r.p).slice(1).toLowerCase();
-  return new Response(new Uint8Array(bytes), {
-    headers: { "content-type": TYPES[ext] ?? "application/octet-stream", "cache-control": "private, max-age=3600" },
-  });
+  // Public poll images: cache in browsers and on Netlify's CDN (the URL is signed + changes when it expires).
+  const cache: Record<string, string> = PUBLIC_BUCKETS.includes(r.bucket)
+    ? {
+        "cache-control": "public, max-age=86400, immutable",
+        "netlify-cdn-cache-control": "public, max-age=86400, durable",
+        "netlify-vary": "query=exp|token",
+      }
+    : { "cache-control": "private, max-age=3600" };
+  return new Response(new Uint8Array(bytes), { headers: { "content-type": TYPES[ext] ?? "application/octet-stream", ...cache } });
 }
 
 export async function PUT(req: Request, ctx: Ctx) {
