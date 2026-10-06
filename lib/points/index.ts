@@ -181,3 +181,27 @@ export async function mergeGuestAccount(guestId: string, intoUserId: string): Pr
     return moved;
   });
 }
+
+/** Points cost of one "imagine in 5 years" generation (3 AI versions). */
+export const IMAGINE_COST = Number(process.env.IMAGINE_COST ?? 10);
+
+/**
+ * Spends points (negative ledger row) if the balance allows, atomically. Returns false when there aren't enough.
+ * `refId` must be unique per spend (e.g. the generation job id).
+ */
+export async function spendPoints(userId: string, amount: number, refId: string): Promise<boolean> {
+  return withUserLock(userId, async (tx) => {
+    const [row] = await tx
+      .select({ n: sql<number>`coalesce(sum(${schema.pointsLedger.amount}), 0)::int` })
+      .from(schema.pointsLedger)
+      .where(eq(schema.pointsLedger.userId, userId));
+    if ((row?.n ?? 0) < amount) return false;
+    await tx.insert(schema.pointsLedger).values({ userId, amount: -amount, reason: "ai_generation", refId });
+    return true;
+  });
+}
+
+/** Gives the points back for a spend (once), e.g. when the AI generation failed. */
+export async function refundPoints(userId: string, amount: number, refId: string) {
+  await getDb().insert(schema.pointsLedger).values({ userId, amount, reason: "ai_refund", refId }).onConflictDoNothing();
+}

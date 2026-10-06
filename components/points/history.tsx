@@ -31,6 +31,7 @@ export function PointsHistory() {
     poll_vote: L('投票への参加', 'Poll participation'), survey_response: L('アンケート回答', 'Survey response'),
     proposal_approved: L('写真提案の承認', 'Approved photo proposal'), qr_checkin: L('現地QRチェックイン', 'On-site QR check-in'),
     game_deposit: L('ゲームへの移動', 'Game deposit'), game_reward: L('ゲーム報酬', 'Game reward'), admin_adjust: L('管理者による調整', 'Staff adjustment'),
+    ai_generation: L('AIで未来の景色を作成', 'AI future view'), ai_refund: L('AI作成の返金', 'AI refund'),
   };
   return <AppShell><section className="space-y-6 pt-5">
     <h1 className="text-[clamp(1.5rem,6.6vw,2rem)] font-black tracking-tight">{pointsName(locale)}</h1>

@@ -89,6 +89,7 @@ export function PollVote({id, via}: {id: string; via?: string}) {
                 </p>
               )}
               <Button asChild className="mt-4 w-full text-base"><Link href={pointsHref}>{L('ポイントを見る・ほかの端末でも使う', 'See my points / use them on another phone')}</Link></Button>
+              <Button asChild variant="outline" className="mt-3 w-full text-base"><Link href={`/${locale}/imagine`}><Sparkles size={18}/>{L('ポイントで「5年後のまち」を想像する', 'Use points: imagine your town in 5 years')}</Link></Button>
               <Button asChild variant="outline" className="mt-3 w-full text-base"><a href={GAME_URL} target="_blank" rel="noopener"><Gamepad2 size={18}/>{L('ゲーム「気仙沼リビングシティ」で使う', 'Use them in the Kesennuma Living City game')}</a></Button>
             </div>
           ) : (

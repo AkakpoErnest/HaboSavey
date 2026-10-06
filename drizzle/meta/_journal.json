@@ -64,6 +64,13 @@
       "when": 1791257807957,
       "tag": "0008_anonymous_users",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791287297419,
+      "tag": "0009_ai_spend",
+      "breakpoints": true
     }
   ]
 }

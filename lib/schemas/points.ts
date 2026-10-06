@@ -9,6 +9,8 @@ export const PointsReason = z.enum([
   "game_deposit",
   "game_reward",
   "admin_adjust",
+  "ai_generation",
+  "ai_refund",
 ]);
 export type PointsReason = z.infer<typeof PointsReason>;
 

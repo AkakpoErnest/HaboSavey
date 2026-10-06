@@ -327,6 +327,8 @@ export const pointsReasonEnum = pgEnum("points_reason", [
   "game_deposit",
   "game_reward",
   "admin_adjust",
+  "ai_generation",
+  "ai_refund",
 ]);
 
 export const pointsLedger = pgTable(

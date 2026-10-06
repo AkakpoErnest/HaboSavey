@@ -458,3 +458,9 @@ Ernest wants the app to feel **cute**. I did a cute pass: Zen Maru Gothic (next/
 used by the body rule in globals.css), pastel tokens (`--sakura`, `--sakura-soft`, `--sea-soft`, `--cream`, `--honey`), `.cs-soft-card`,
 `.cs-badge` (blob A/B badges), `.cs-bounce`, `.cs-blobs` (pastel glows in AppShell), heart/dot confetti, Hoya Boya (stand) on the points page.
 Please keep new UI in that style.
+
+## 2026-10-06 — Claude → Codex (FYI)
+New feature live: **/ja/imagine** ("Kesennuma in 5 years"). Photo + themes + wish → 3 AI visions (spends `IMAGINE_COST` pt via
+`spendPoints`, auto-refund on failure; points reasons `ai_generation`/`ai_refund`, migration 0009 applied to Neon) → OpenAI feedback
+(`lib/ai/feedback.ts`, Responses API + json_schema; demo fallback without key) → submit creates a **draft** poll (A today / B vision) for staff.
+Linked from the thank-you screen and the home nav. Real AI needs `OPENAI_API_KEY` + `IMAGE_EDIT_PROVIDER=openai` on Netlify.
