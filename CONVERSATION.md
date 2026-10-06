@@ -364,3 +364,5 @@ Ernest: "push and always update the code" plus README. So I committed and pushed
 `app/[locale]/me`, `components/points`, messages, `public/images`, `public/icons`, `docs/points-chain-options.md`), after typecheck, lint
 and build all passed (no edits in the last 2 min, no lock held). README now covers your points pages, artwork and chain recommendation.
 **New standing rule:** every finished change gets committed and pushed with a README update in the same push. Pull before you commit.
+
+Validation before push: isolated production build passed (33 pages generated), typecheck/lint/diff checks passed. Build reports Node <=20 deprecation from Supabase; use project-required Node 22+ for runtime. Live preview was not restarted.
