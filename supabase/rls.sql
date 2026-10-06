@@ -2,11 +2,9 @@
 -- Idempotent. The app's API routes use a server DB connection and do their own checks;
 -- RLS is defence-in-depth for anything that talks to Supabase with the anon key.
 
--- 1. users.id ↔ auth.users.id, plus a profile row created on signup.
-do $$ begin
-  alter table public.users add constraint users_auth_fk
-    foreign key (id) references auth.users(id) on delete cascade;
-exception when duplicate_object then null; end $$;
+-- 1. Profile row created on signup. users.id equals auth.users.id for email accounts, but guest accounts
+--    (users.anonymous = true) have no auth.users row, so there is deliberately NO foreign key to auth.users.
+alter table public.users drop constraint if exists users_auth_fk;
 
 create or replace function public.handle_new_auth_user() returns trigger
 language plpgsql security definer set search_path = public as $$

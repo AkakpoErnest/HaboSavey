@@ -4,13 +4,14 @@ import { HttpError, ok, parseJson, route, type Params } from "@/lib/api/http";
 import { effectivePollStatus, loadPollRow, MAX_VOTES_PER_IP, resultsVisibleFor, tallyPoll, voterIdentity } from "@/lib/api/polls";
 import { getCurrentUser, isStaff } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
-import { awardGuestPoints, awardPoints, openEarning } from "@/lib/points";
+import { createAnonUser } from "@/lib/auth/anon";
+import { awardPoints, openEarning } from "@/lib/points";
 
 /** Cast or change my A/B vote. No account needed unless the poll requires it. */
 export const PUT = route<Params<"id">>(async (req, { params }) => {
   const { id: ref } = await params;
   const { choice, via } = await parseJson(req, PollVoteInput);
-  const user = await getCurrentUser();
+  let user = await getCurrentUser();
   const poll = await loadPollRow(ref);
   const id = poll.id;
 
@@ -19,6 +20,12 @@ export const PUT = route<Params<"id">>(async (req, { params }) => {
   if ((poll.requireSignIn || poll.verifiedOnly) && !user) throw new HttpError("unauthorized", "Please sign in to vote");
   if (poll.verifiedOnly && !user?.verifiedLocal) throw new HttpError("forbidden", "Only verified Kesennuma residents can vote");
 
+  // Anonymous voter + open earning: give them a guest account (nickname, no email) so points have a home.
+  let createdGuest = false;
+  if (!user && openEarning() && effectivePollStatus(poll) === "open") {
+    user = await createAnonUser();
+    createdGuest = true;
+  }
   const { keys, primaryKey, ipHash } = await voterIdentity(user, true);
   if (!primaryKey) throw new HttpError("bad_request", "Please enable cookies to vote");
 
@@ -59,12 +66,12 @@ export const PUT = route<Params<"id">>(async (req, { params }) => {
       });
   }
   // Points reward taking part (once per poll), not the choice. Changing a vote can't earn again.
-  const pointsPending = !user && openEarning();
-  const pointsAwarded = user ? await awardPoints(user, "poll_vote", id) : await awardGuestPoints(primaryKey, "poll_vote", id);
+  const pointsAwarded = await awardPoints(user, "poll_vote", id);
   return ok<PollVoteResponse>({
     myChoice: choice,
     results: resultsVisibleFor(poll, isStaff(user), true) ? await tallyPoll(id) : null,
     pointsAwarded,
-    pointsPending: pointsPending && pointsAwarded > 0,
+    pointsPending: false,
+    guest: user?.anonymous ? { nickname: user.displayName, created: createdGuest } : null,
   });
 });

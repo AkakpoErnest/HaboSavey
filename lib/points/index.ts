@@ -129,6 +129,15 @@ export async function claimGuestPoints(userId: string, voterKeys: string[]): Pro
   });
 }
 
+/** Points moved in from guest accounts in the last `minutes` (for the "points collected" notice). */
+export async function recentlyMerged(userId: string, minutes = 10): Promise<number> {
+  const [row] = await getDb()
+    .select({ n: sql<number>`coalesce(sum((${schema.auditLog.meta}->>'points')::int), 0)::int` })
+    .from(schema.auditLog)
+    .where(and(eq(schema.auditLog.actorId, userId), eq(schema.auditLog.action, "guest.merge"), gte(schema.auditLog.createdAt, new Date(Date.now() - minutes * 60_000))));
+  return row?.n ?? 0;
+}
+
 /** Guest points this user claimed from this device in the last `minutes` (for a "points collected" notice). */
 export async function recentlyClaimed(userId: string, voterKeys: string[], minutes = 10): Promise<number> {
   const keys = voterKeys.filter((k) => k.startsWith("dev:"));
@@ -142,4 +151,33 @@ export async function recentlyClaimed(userId: string, voterKeys: string[], minut
       gte(schema.guestPoints.claimedAt, new Date(Date.now() - minutes * 60_000)),
     ));
   return row?.n ?? 0;
+}
+
+/**
+ * Moves a guest account's points, game stamps and game links into an email account (when the person signs in by
+ * email on a device that had a guest account). Duplicate awards are skipped. Returns the points moved.
+ */
+export async function mergeGuestAccount(guestId: string, intoUserId: string): Promise<number> {
+  if (guestId === intoUserId) return 0;
+  return withUserLock(intoUserId, async (tx) => {
+    const rows = await tx.select().from(schema.pointsLedger).where(eq(schema.pointsLedger.userId, guestId));
+    let moved = 0;
+    for (const r of rows) {
+      const ins = await tx
+        .insert(schema.pointsLedger)
+        .values({ userId: intoUserId, amount: r.amount, reason: r.reason, refId: r.refId, onchainTx: r.onchainTx })
+        .onConflictDoNothing()
+        .returning({ id: schema.pointsLedger.id });
+      if (ins.length) moved += r.amount;
+    }
+    await tx.delete(schema.pointsLedger).where(eq(schema.pointsLedger.userId, guestId));
+    const stamps = await tx.select().from(schema.gameStamps).where(eq(schema.gameStamps.userId, guestId));
+    for (const st of stamps) {
+      await tx.insert(schema.gameStamps).values({ userId: intoUserId, app: st.app, kind: st.kind, key: st.key }).onConflictDoNothing();
+    }
+    await tx.delete(schema.gameStamps).where(eq(schema.gameStamps.userId, guestId));
+    await tx.update(schema.gameLinks).set({ userId: intoUserId }).where(eq(schema.gameLinks.userId, guestId));
+    await tx.insert(schema.auditLog).values({ actorId: intoUserId, action: "guest.merge", targetType: "user", targetId: guestId, meta: { points: moved } });
+    return moved;
+  });
 }

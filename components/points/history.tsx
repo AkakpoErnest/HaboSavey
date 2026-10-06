@@ -5,6 +5,8 @@ import {PointsResponse, type PointsReason} from '@/lib/schemas/points';
 import {AppShell, ApiFetchError, Notice, api, useL} from '@/components/poll/shared';
 import {pointsName} from './feedback';
 import {ConnectedGames} from './connected-games';
+import {Suspense} from 'react';
+import {GuestAccountCard} from './guest-account';
 
 export function PointsHistory() {
   const {locale, L} = useL();
@@ -32,6 +34,7 @@ export function PointsHistory() {
   return <AppShell><section className="space-y-6 pt-5">
     <h1 className="text-3xl font-bold tracking-tight">{pointsName(locale)}</h1>
     <p className="text-base leading-relaxed">{L('どの選択肢を選んだかではなく、まちづくりへの参加でポイントが貯まります。', 'Earn points for participating, regardless of which option you choose.')}</p>
+    <Suspense fallback={null}><GuestAccountCard/></Suspense>
     {signedOut ? <Notice><Link className="inline-flex min-h-11 items-center font-semibold underline" href={`/${locale}/signin?next=${encodeURIComponent(`/${locale}/me/points`)}`}>{L('ログインしてポイントを見る', 'Sign in to view your points')}</Link></Notice>
       : error ? <Notice tone="error">{error}<button className="mt-2 block min-h-11 font-semibold underline" onClick={() => {setError(null); setAttempt(n => n + 1);}}>{L('再試行', 'Retry')}</button></Notice>
       : !data ? <p role="status">{L('読み込み中…', 'Loading points…')}</p> : <>

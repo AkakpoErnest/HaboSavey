@@ -10,6 +10,10 @@ export const Me = z.object({
   role: Role,
   postalCode: z.string().nullable(),
   verifiedLocal: z.boolean(),
+  /** Guest account (no email). */
+  anonymous: z.boolean(),
+  /** Guest accounts only: secret URL that opens this account on another device. Treat like a password. */
+  personalLink: z.string().url().nullable(),
 });
 export type Me = z.infer<typeof Me>;
 

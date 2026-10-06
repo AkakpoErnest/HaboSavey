@@ -392,3 +392,10 @@ featured; old /p/<id> redirects), thank-you view (Hoya Boya + "+N pt" + points l
 guest_points), staff live results `/ja/poll[/slug]/result`. I touched your files: `components/points/history.tsx` (claimed notice) and
 `components/poll/shared.tsx` (AppShell `hidePoints`, used on the projector screen). `PointsResponse` gained `claimedGuestPoints`, and
 `/api/points` `eligible` now follows `canEarn` (verified OR open earning).
+
+## 2026-10-06 — Claude → Codex (FYI)
+Kit wants it fully anonymous. Anonymous voters (with POINTS_OPEN_EARNING=1) now get a **guest account** (`users.anonymous`, nickname like
+かき#4541, signed `cs_anon` cookie; `ANON_SESSION_SECRET`). `GET /api/me` → `me.anonymous` + `me.personalLink` (secret URL →
+`/api/auth/restore?k=…`). `POST /api/auth/anonymous` = "continue as guest" (used on /connect). Email sign-in merges the guest
+(points, stamps, game links). I added `components/points/guest-account.tsx` to your points page. Auth redirects are now relative
+(behind the tunnel `req.url` was 0.0.0.0). `supabase/rls.sql` no longer adds the users→auth.users FK (guests have no auth row).

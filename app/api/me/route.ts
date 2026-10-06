@@ -3,9 +3,11 @@ import { UpdateMeInput, type Me, type MeResponse } from "@/lib/schemas";
 import { ok, parseJson, route } from "@/lib/api/http";
 import { presentProposalCard } from "@/lib/api/present";
 import { getCurrentUser, requireUser, type CurrentUser } from "@/lib/auth";
+import { anonLinkToken } from "@/lib/auth/anon";
 import { getDb, schema } from "@/lib/db";
 import { signUrls } from "@/lib/storage";
 
+const appUrl = () => process.env.APP_URL ?? "http://localhost:3000";
 const presentMe = (u: CurrentUser): Me => ({
   id: u.id,
   email: u.email,
@@ -14,6 +16,8 @@ const presentMe = (u: CurrentUser): Me => ({
   role: u.role,
   postalCode: u.postalCode,
   verifiedLocal: u.verifiedLocal,
+  anonymous: u.anonymous,
+  personalLink: u.anonymous ? `${appUrl()}/api/auth/restore?k=${encodeURIComponent(anonLinkToken(u.id))}` : null,
 });
 
 export const GET = route(async () => {

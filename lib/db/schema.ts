@@ -36,6 +36,8 @@ export const users = pgTable("users", {
   role: roleEnum("role").notNull().default("resident"),
   postalCode: text("postal_code"),
   verifiedLocal: boolean("verified_local").notNull().default(false),
+  /** Guest account with no email (created on an anonymous vote or "continue as guest"); signed in via a device cookie. */
+  anonymous: boolean("anonymous").notNull().default(false),
   createdAt: createdAt(),
 });
 

@@ -19,6 +19,7 @@ export const GET = withCors(route(async (req) => {
   const body: GameMeResponse = {
     displayName: user.displayName,
     verifiedResident: user.verifiedLocal,
+    // (guests can still earn while POINTS_OPEN_EARNING=1)
     points: await pointsBalance(userId),
     pointsName: { ja: process.env.NEXT_PUBLIC_POINTS_NAME_JA ?? "はまらいんやポイント", en: process.env.NEXT_PUBLIC_POINTS_NAME_EN ?? "Hamarainya Points" },
     stamps: {

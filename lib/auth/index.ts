@@ -3,12 +3,26 @@ import { getDb, schema } from "@/lib/db";
 import { HttpError } from "@/lib/api/http";
 import { isLocalMode } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { anonUserIdFromCookie } from "./anon";
 import { localUserId } from "./local";
 
 export type CurrentUser = typeof schema.users.$inferSelect;
 
 /** The signed-in user's profile row, or null. Creates the row if the signup trigger hasn't run. */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
+  return (await getEmailUser()) ?? (await getAnonUser());
+}
+
+/** The guest (anonymous) account this device is signed into, if any. */
+export async function getAnonUser(): Promise<CurrentUser | null> {
+  const id = await anonUserIdFromCookie();
+  if (!id) return null;
+  const [row] = await getDb().select().from(schema.users).where(eq(schema.users.id, id));
+  return row?.anonymous ? row : null;
+}
+
+/** The email-signed-in user (Supabase session, or the dev cookie in local mode). */
+export async function getEmailUser(): Promise<CurrentUser | null> {
   if (isLocalMode()) {
     const id = await localUserId();
     if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return null;

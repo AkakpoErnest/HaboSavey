@@ -1,12 +1,15 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import Link from 'next/link';
-import {Check, Coins, Maximize2, X} from 'lucide-react';
+import {Check, Coins, Gamepad2, Maximize2, X} from 'lucide-react';
 import type {PollChoice, PollDetailResponse, PollVoteResponse} from '@/lib/schemas';
 import {announcePoints, pointsName} from '@/components/points/feedback';
 import {Button} from '@/components/ui/button';
 import {HoyaBoya} from '@/components/mascot';
 import {AppShell, ApiFetchError, Notice, OPTION_COLORS, ResultBars, api, pick, useL} from './shared';
+
+/** KesenMemento / Kesennuma Living City (the partner game). */
+const GAME_URL = process.env.NEXT_PUBLIC_GAME_URL || 'https://kesennuma-living-city-production.up.railway.app/';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -19,7 +22,7 @@ export function PollVote({id, via}: {id: string; via?: string}) {
   const [submitting, setSubmitting] = useState(false);
   const [changing, setChanging] = useState(false);
   const [zoom, setZoom] = useState<PollChoice | null>(null);
-  const [award, setAward] = useState<{points: number; pending: boolean} | null>(null);
+  const [award, setAward] = useState<{points: number; nickname: string | null} | null>(null);
   const zoomRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -46,7 +49,6 @@ export function PollVote({id, via}: {id: string; via?: string}) {
   const voted = data.myChoice !== null && !changing;
   const pName = pointsName(locale);
   const pointsHref = `/${locale}/me/points`;
-  const signInForPoints = `/${locale}/signin?next=${encodeURIComponent(pointsHref)}`;
   const selfPath = id === 'current' ? `/${locale}/poll` : `/${locale}/poll/${poll.slug}`;
 
   async function submit() {
@@ -55,8 +57,8 @@ export function PollVote({id, via}: {id: string; via?: string}) {
     try {
       const res = await api<PollVoteResponse>(`/api/polls/${poll.id}/vote`, {method: 'PUT', json: {choice: selected, ...(via ? {via} : {})}});
       setData((d) => d && {...d, myChoice: res.myChoice, results: res.results, votePoints: 0});
-      if (res.pointsAwarded > 0) setAward({points: res.pointsAwarded, pending: res.pointsPending});
-      if (!res.pointsPending) announcePoints(res.pointsAwarded);
+      if (res.pointsAwarded > 0) setAward({points: res.pointsAwarded, nickname: res.guest?.nickname ?? null});
+      announcePoints(res.pointsAwarded);
       setChanging(false);
       window.scrollTo({top: 0, behavior: 'smooth'});
     } catch (e) {
@@ -79,14 +81,14 @@ export function PollVote({id, via}: {id: string; via?: string}) {
             <div className="cs-rise cs-d2 mx-auto mt-6 max-w-sm rounded-2xl border border-[#dee2d6] bg-white p-5">
               <p className="flex items-center justify-center gap-2 text-2xl font-bold text-[#a8532f]"><Coins size={26}/>+{award.points} pt</p>
               <p className="mt-1 text-base">{L(`${pName}をゲットしました！`, `You earned ${pName}!`)}</p>
-              {award.pending ? (
-                <>
-                  <p className="mt-2 text-sm text-[#4d5d4f]">{L('ポイントはこの端末に保存されています。ログインするとアカウントに受け取れます。', 'Your points are saved on this device. Sign in to keep them in your account.')}</p>
-                  <Button asChild className="mt-4 w-full text-base"><Link href={signInForPoints}>{L('ログインしてポイントを受け取る', 'Sign in to collect your points')}</Link></Button>
-                </>
-              ) : (
-                <Button asChild className="mt-4 w-full text-base"><Link href={pointsHref}>{L('ポイントを見る', 'See my points')}</Link></Button>
+              {award.nickname && (
+                <p className="mt-3 rounded-xl bg-[#f1f4ec] px-3 py-2 text-base">
+                  {L('あなたのニックネーム：', 'Your nickname: ')}<b>{award.nickname}</b>
+                  <span className="mt-1 block text-sm text-[#4d5d4f]">{L('登録なし・匿名のままでOK。ポイントはこの端末に保存されます。', 'No sign-up, fully anonymous. Points are saved on this phone.')}</span>
+                </p>
               )}
+              <Button asChild className="mt-4 w-full text-base"><Link href={pointsHref}>{L('ポイントを見る・ほかの端末でも使う', 'See my points / use them on another phone')}</Link></Button>
+              <Button asChild variant="outline" className="mt-3 w-full text-base"><a href={GAME_URL} target="_blank" rel="noopener"><Gamepad2 size={18}/>{L('ゲーム「気仙沼リビングシティ」で使う', 'Use them in the Kesennuma Living City game')}</a></Button>
             </div>
           ) : (
             <p className="mx-auto mt-6 max-w-sm text-base text-[#4d5d4f]">{L('ご参加ありがとうございました。', 'Thank you for taking part.')} <Link className="font-semibold underline underline-offset-4" href={pointsHref}>{L('ポイントを見る', 'See my points')}</Link></p>

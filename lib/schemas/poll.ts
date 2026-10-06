@@ -74,8 +74,10 @@ export const PollVoteResponse = z.object({
   results: PollTally.nullable(),
   /** Participation points just awarded (verified residents, first vote on this poll). */
   pointsAwarded: z.number().int(),
-  /** Awarded as guest points on this device; they move into the account after sign-in. */
+  /** Legacy (device-held guest points); always false now that anonymous voters get a guest account. */
   pointsPending: z.boolean(),
+  /** Set when the voter is using a guest account (no email): its nickname, and whether it was just created. */
+  guest: z.object({ nickname: z.string(), created: z.boolean() }).nullable(),
 });
 export type PollVoteResponse = z.infer<typeof PollVoteResponse>;
 

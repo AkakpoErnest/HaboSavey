@@ -3,7 +3,7 @@ import { GameEventInput, type GameEventResponse } from "@/lib/schemas";
 import { HttpError, parseJson, route } from "@/lib/api/http";
 import { getDb, schema } from "@/lib/db";
 import { corsHeaders, GAME_DAILY_CAP, GAME_RULES, gamePointsToday, verifyGameToken, withCors } from "@/lib/game";
-import { withUserLock } from "@/lib/points";
+import { canEarn, withUserLock } from "@/lib/points";
 
 export const OPTIONS = (req: Request) => new Response(null, { status: 204, headers: corsHeaders(req) });
 
@@ -32,7 +32,7 @@ export const POST = withCors(route(async (req) => {
       if (n >= MAX_PLACE_STAMPS) throw new HttpError("rate_limited", "Stamp limit reached");
     }
     const [stamp] = await tx.insert(schema.gameStamps).values({ userId, app, kind, key }).onConflictDoNothing().returning();
-    if (!stamp || !user.verifiedLocal) return { newStamp: !!stamp, pointsAwarded: 0 };
+    if (!stamp || !canEarn(user)) return { newStamp: !!stamp, pointsAwarded: 0 };
     const amount = Math.min(GAME_RULES[event.type], GAME_DAILY_CAP - (await gamePointsToday(userId, tx)));
     if (amount <= 0) return { newStamp: true, pointsAwarded: 0 };
     await tx.insert(schema.pointsLedger).values({ userId, amount, reason: "game_reward", refId: `${app}:${kind}:${key}` });

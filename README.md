@@ -18,7 +18,7 @@ Citizen Sentiment is a simple app that enables Kesennuma city officials to gathe
 | **AI option B** | Staff upload a real photo as A; an image model renders the proposal as B from an editable brief (default: Kit's wooden promenade prompt). Labelled "AI image". | staff poll form |
 | **Staff admin** | Create polls, print QR codes, open/close polls, moderation queue. | `/ja/admin/polls` |
 | **Resident verification** | City-hall QR codes mark a resident as verified (needed to earn points, optional for voting). | `/q/<code>` |
-| **Points (phase 1)** | Verified residents earn はまらいんやポイント for taking part, never for a choice: vote +10, survey +20, approved proposal +50, on-site QR check-in +5/day. Capped at 100/day (atomic, per-user lock). **Demo mode** `POINTS_OPEN_EARNING=1`: anyone earns, and anonymous voters get guest points kept on their device that move into their account when they sign in (easy to farm, so turn it off after demos). Balance chip in the header, history page, and "+N pt" notices after poll votes and QR check-ins. | `/ja/me/points`, `GET /api/points` |
+| **Points (phase 1)** | Verified residents earn はまらいんやポイント for taking part, never for a choice: vote +10, survey +20, approved proposal +50, on-site QR check-in +5/day. Capped at 100/day (atomic, per-user lock). **Demo mode** `POINTS_OPEN_EARNING=1`: anyone earns. Anonymous voters automatically get a **guest account** with a Kesennuma nickname (e.g. かき#4541), with no email and no sign-up; points live there. A secret **personal link** (share/copy on the points page) opens the same guest account on another phone or for the game. Email sign-in stays optional and merges the guest's points. Easy to farm, so turn it off after demos. Balance chip in the header, history page, and "+N pt" notices after poll votes and QR check-ins. | `/ja/me/points`, `GET /api/points` |
 | **Game link** | KesenMemento (3D Kesennuma game) players connect their account and collect place stamps and ship-act badges (+2 / +10 pt, own daily cap). Connections can be listed and revoked from the points page (`/ja/me/points`), with confirmation and clear connection status. | `/ja/connect`, `/api/game/*`, [`integrations/kesenmemento/`](integrations/kesenmemento/INTEGRATION.md) |
 | **On-chain (phase 2–3)** | Ethereum-L2 contracts: HamaPoints (non-transferable between wallets, only into approved projects), GameVault, soulbound collectibles. 16 Foundry tests. Not deployed yet. | [`contracts/`](contracts/), [`docs/POINTS-AND-GAME.md`](docs/POINTS-AND-GAME.md) |
 | **Hoya Boya** | Kesennuma's official mascot on home, list, thank-you and error screens: official city art, unaltered, always credited, never animated. | `components/mascot.tsx` |
@@ -29,8 +29,8 @@ Citizen Sentiment is a simple app that enables Kesennuma city officials to gathe
 ## Demo script (Kit's presentation)
 
 1. Flyers show the A/B images and a QR code to **`https://<host>/ja/poll`** (print it from `/ja/admin/polls/<poll>`, or any QR generator).
-2. The audience scans, picks A or B and submits, with no sign-up. They see "ありがとう！はまらいんや！" and **+10 pt**
-   (with `POINTS_OPEN_EARNING=1`), and can sign in to keep the points.
+2. The audience scans, picks A or B and submits, fully anonymously. They see "ありがとう！はまらいんや！", **+10 pt** and their
+   nickname (with `POINTS_OPEN_EARNING=1`), plus links to their points (personal link for other phones) and to the game.
 3. At the end, open **`https://<host>/ja/poll/result`** on the projector, signed in with the staff email, to show the live count.
 
 To feature a different poll at `/ja/poll`, tick "Show this poll at /poll" when creating it (or `PATCH /api/polls/<slug> {featured:true}`).
@@ -65,9 +65,9 @@ to the public URL, because printed QR codes encode it, and set `GAME_ORIGINS` to
 
 | Who | Account? |
 |---|---|
-| Citizens voting on an A/B poll | **No.** Scan the QR code, pick A or B (one vote per device). |
+| Citizens voting on an A/B poll | **No.** Scan the QR code, pick A or B (one vote per device). In demo mode they get an automatic **anonymous guest account** (nickname, no email) that holds their points. |
 | Playing KesenMemento | **No.** The game works as before for everyone. |
-| Collecting stamps in the game | A Citizen Sentiment account (email sign-in, no password), linked via **Connect**. |
+| Collecting stamps in the game | **Connect** from the game, either as a guest (no sign-up) or with email. |
 | Earning points | A **verified resident** account (city-hall QR code, or verified later by staff). |
 | City staff | A staff account. |
 | The game's author | No account with us; the game just includes `cs-connect.js` and tells us its web address. |

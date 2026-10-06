@@ -25,6 +25,15 @@ export function ConnectGame() {
   const game = app ? GAMES[app] : undefined;
   if (!game || !returnUrl) return <AppShell><div className="pt-8"><Notice tone="error">{L('接続リンクが正しくありません。', 'This connect link is not valid.')}</Notice></div></AppShell>;
 
+  async function startGuest() {
+    setBusy(true); setError(null);
+    try {
+      await api('/api/auth/anonymous', {method: 'POST'});
+      const r = await api<MeResponse>('/api/me');
+      setMe(r.me);
+    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  }
+
   async function connect() {
     setBusy(true); setError(null);
     try {
@@ -47,9 +56,12 @@ export function ConnectGame() {
         {error && <Notice tone="error">{error}</Notice>}
         {me === undefined ? <p className="text-base">{L('読み込み中…', 'Loading…')}</p>
           : me === null
-            ? <Button asChild className="w-full text-base"><Link href={`/${locale}/signin?next=${encodeURIComponent(here)}`}>{L('ログインして連携する', 'Sign in to connect')}</Link></Button>
+            ? <div className="space-y-3">
+                <Button className="cs-press w-full text-base" disabled={busy} onClick={startGuest}>{L('登録なしで続ける（ゲスト）', 'Continue without sign-up (guest)')}</Button>
+                <Button asChild variant="outline" className="w-full text-base"><Link href={`/${locale}/signin?next=${encodeURIComponent(here)}`}>{L('メールでログインして連携', 'Sign in with email')}</Link></Button>
+              </div>
             : <>
-                <p className="text-base">{L(`${me.displayName} さんとして連携します。`, `You'll connect as ${me.displayName}.`)}{!me.verifiedLocal && L('（ポイントは住民確認後に付与されます）', ' (points start once you are a verified resident)')}</p>
+                <p className="text-base">{me.anonymous ? L(`ゲスト「${me.displayName}」として連携します（登録なし）。`, `You'll connect as guest "${me.displayName}" (no sign-up).`) : L(`${me.displayName} さんとして連携します。`, `You'll connect as ${me.displayName}.`)}</p>
                 <Button className="cs-press w-full text-base" disabled={busy} onClick={connect}>{busy ? L('連携中…', 'Connecting…') : L('連携してゲームに戻る', 'Connect and return to the game')}</Button>
               </>}
         <a href={returnUrl} className="block min-h-11 text-center text-base underline underline-offset-4">{L('キャンセル', 'Cancel')}</a>
