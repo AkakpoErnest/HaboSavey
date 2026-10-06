@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {ArrowRight, Check} from 'lucide-react';
 import type {ListPollsResponse} from '@/lib/schemas';
+import {DuskBanner} from '@/components/backdrop';
 import {HoyaBoya} from '@/components/mascot';
 import {AppShell, Notice, OPTION_COLORS, api, pick, useL} from './shared';
 
@@ -38,9 +39,13 @@ export function PollList() {
   return (
     <AppShell>
       <div className="pt-4">
-        <p className="cs-rise mb-2 text-xs font-bold tracking-[0.18em] text-[#5b6b5c]">{L('気仙沼市', 'KESENNUMA CITY')}</p>
-        <h1 className="cs-rise cs-d1 text-[1.75rem] font-bold leading-snug tracking-tight">{L('まちの計画、あなたはどっち？', 'City plans: which do you prefer?')}</h1>
-        <p className="cs-rise cs-d2 mt-3 text-base leading-relaxed text-[#4d5d4f]">{L('AとBの案を見比べて、選ぶだけ。登録は不要です。', 'Compare A and B and pick one. No sign-up needed.')}</p>
+        <DuskBanner priority aiLabel={L('AIイメージ', 'AI image')} className="cs-rise">
+          <div className="max-w-md px-5 pb-12 pt-10 sm:px-8 sm:pb-16 sm:pt-14">
+            <p className="mb-2 text-xs font-bold tracking-[0.18em] text-white/80">{L('気仙沼市', 'KESENNUMA CITY')}</p>
+            <h1 className="text-[1.85rem] font-bold leading-snug tracking-tight [text-shadow:0_2px_12px_rgba(0,0,0,.35)]">{L('まちの計画、あなたはどっち？', 'City plans: which do you prefer?')}</h1>
+            <p className="mt-3 text-base leading-relaxed text-white/90">{L('AとBの案を見比べて、選ぶだけ。登録は不要です。', 'Compare A and B and pick one. No sign-up needed.')}</p>
+          </div>
+        </DuskBanner>
         <HoyaBoya pose="wave" height={120} className="mt-5" say={L('AとB、きみはどっちが好き？', 'A or B? Which one do you like?')}/>
         {error && <div className="mt-6"><Notice tone="error">{error}</Notice></div>}
         {!polls && !error && <div className="cs-skeleton mt-6 aspect-[4/3] rounded-2xl"/>}
