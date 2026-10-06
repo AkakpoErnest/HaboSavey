@@ -70,3 +70,33 @@
 .cs-confetti i.heart{width:auto;height:auto;background:none;color:var(--c);font-size:16px;line-height:1}
 .cs-confetti i.dot{border-radius:50%;width:10px;height:10px}
 @media(prefers-reduced-motion:reduce){.cs-blobs i{animation:none}}
+
+/* ── Motion pass 2 (Claude): seagulls, sparkles, wave edge, shine, VS pulse, floating hearts. Off under reduced motion. ── */
+@keyframes cs-fly{0%{transform:translate(-12vw,0) scale(var(--s,1))}50%{transform:translate(50vw,-3vh) scale(var(--s,1))}100%{transform:translate(112vw,1vh) scale(var(--s,1))}}
+@keyframes cs-flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.35)}}
+@keyframes cs-twinkle{0%,100%{opacity:0;transform:translateY(0) scale(.6)}40%{opacity:.9}100%{transform:translateY(-40px) scale(1)}}
+@keyframes cs-wave-x{to{transform:translateX(-50%)}}
+@keyframes cs-hint{0%,100%{transform:translate(-50%,0);opacity:.8}50%{transform:translate(-50%,8px);opacity:1}}
+@keyframes cs-shine{0%,70%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(260%) skewX(-20deg)}}
+@keyframes cs-vs{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.12)}}
+@keyframes cs-rise-up{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translateY(-140px) scale(1.1)}}
+@keyframes cs-burst{0%{opacity:1;transform:translate(0,0) scale(.4)}100%{opacity:0;transform:translate(var(--bx),var(--by)) scale(1)}}
+@keyframes cs-glow-pulse{0%,100%{box-shadow:0 0 0 0 rgba(192,86,107,.0),0 12px 30px -18px rgba(33,62,54,.35)}50%{box-shadow:0 0 0 6px rgba(242,167,180,.35),0 12px 30px -18px rgba(33,62,54,.35)}}
+
+.cs-gulls{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.cs-gull{position:absolute;left:0;width:34px;height:14px;color:rgba(255,255,255,.85);animation:cs-fly var(--d,22s) linear infinite;animation-delay:var(--delay,0s)}
+.cs-gull svg{width:100%;height:100%;animation:cs-flap .9s ease-in-out infinite;transform-origin:center}
+.cs-sparks{position:absolute;inset:0;pointer-events:none;z-index:0}
+.cs-sparks i{position:absolute;width:5px;height:5px;border-radius:50%;background:#ffe2a8;box-shadow:0 0 10px 3px rgba(255,214,140,.55);opacity:0;animation:cs-twinkle var(--d,6s) ease-in-out infinite;animation-delay:var(--delay,0s)}
+.cs-wave-edge{position:absolute;left:0;right:0;bottom:-1px;height:42px;overflow:hidden;pointer-events:none;z-index:1}
+.cs-wave-edge svg{width:200%;height:100%;animation:cs-wave-x 14s linear infinite}
+.cs-scroll-hint{position:absolute;left:50%;bottom:54px;z-index:2;color:rgba(255,255,255,.85);animation:cs-hint 2.2s ease-in-out infinite}
+.cs-shine{position:relative;overflow:hidden}
+.cs-shine::after{content:"";position:absolute;inset:-2px auto -2px 0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:cs-shine 4.5s ease-in-out infinite;pointer-events:none}
+.cs-vs{position:absolute;left:50%;top:50%;z-index:3;transform:translate(-50%,-50%);animation:cs-vs 1.8s ease-in-out infinite}
+.cs-selected-glow{animation:cs-glow-pulse 2.2s ease-in-out infinite}
+.cs-hearts{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.cs-hearts i{position:absolute;bottom:0;font-style:normal;font-size:var(--fs,18px);color:var(--c,#f2a7b4);opacity:0;animation:cs-rise-up var(--d,3.2s) ease-out infinite;animation-delay:var(--delay,0s)}
+.cs-burst{position:relative;display:inline-block}
+.cs-burst i{position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px;border-radius:50%;background:var(--c,#f4c47a);animation:cs-burst .9s cubic-bezier(.2,.7,.3,1) forwards}
+@media(prefers-reduced-motion:reduce){.cs-gulls,.cs-sparks,.cs-hearts,.cs-burst i,.cs-scroll-hint{display:none}.cs-wave-edge svg,.cs-shine::after,.cs-vs,.cs-selected-glow{animation:none}}

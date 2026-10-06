@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import type {PollResultsResponse} from '@/lib/schemas';
 import {Button} from '@/components/ui/button';
 import {HoyaBoya} from '@/components/mascot';
+import {CountUp} from '@/components/motion';
 import {AppShell, ApiFetchError, Notice, OPTION_COLORS, api, pick, useL} from './shared';
 
 const REFRESH_MS = 3000;
@@ -62,7 +63,7 @@ export function PollResultsLive({id}: {id: string}) {
             <h1 className="text-[clamp(1.6rem,3.2vw,2.6rem)] font-bold leading-tight tracking-tight">{pick(locale, poll.questionJa, poll.questionEn)}</h1>
           </div>
           <div className="text-right">
-            <p className="text-[clamp(2.5rem,6vw,4.5rem)] font-black leading-none tabular-nums">{tally.total}</p>
+            <p className="text-[clamp(2.5rem,6vw,4.5rem)] font-black leading-none tabular-nums"><CountUp value={tally.total}/></p>
             <p className="text-base font-semibold text-[#4d5d4f]">{L('票', 'votes')}</p>
           </div>
         </div>
@@ -80,7 +81,7 @@ export function PollResultsLive({id}: {id: string}) {
                 <figcaption className="p-5">
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="text-xl font-bold leading-snug">{pick(locale, o.labelJa, o.labelEn)}</span>
-                    <span className="text-[clamp(2rem,4.5vw,3.5rem)] font-black tabular-nums" style={{color: OPTION_COLORS[o.key]}}>{pct(n)}%</span>
+                    <span className="text-[clamp(2rem,4.5vw,3.5rem)] font-black tabular-nums" style={{color: OPTION_COLORS[o.key]}}><CountUp value={pct(n)}/>%</span>
                   </div>
                   <div className="mt-3 h-5 overflow-hidden rounded-full bg-[#e4e8dc]">
                     <div className="h-full rounded-full transition-[width] duration-700" style={{width: `${pct(n)}%`, background: OPTION_COLORS[o.key]}}/>

@@ -6,6 +6,7 @@ import type {PollChoice, PollDetailResponse, PollVoteResponse} from '@/lib/schem
 import {announcePoints, pointsName} from '@/components/points/feedback';
 import {Button} from '@/components/ui/button';
 import {HoyaBoya} from '@/components/mascot';
+import {Burst, CountUp, FloatingHearts} from '@/components/motion';
 import {AppShell, ApiFetchError, Notice, OPTION_COLORS, ResultBars, api, pick, useL} from './shared';
 
 /** KesenMemento / Kesennuma Living City (the partner game). */
@@ -75,12 +76,13 @@ export function PollVote({id, via}: {id: string; via?: string}) {
       <AppShell>
         <section className="relative overflow-hidden pt-6 text-center" aria-live="polite">
           {award && <Confetti/>}
+          {award && <FloatingHearts/>}
           <h1 className="cs-rise text-[2rem] font-bold leading-snug tracking-tight">{L('ありがとう！\nはまらいんや！', 'Thank you!\nHamarainya!')}</h1>
           <div className="mt-4 flex justify-center"><HoyaBoya pose="cheer" height={170}/></div>
 
           {award ? (
             <div className="cs-rise cs-d2 cs-soft-card mx-auto mt-6 max-w-sm border border-[#f6dfe3] bg-gradient-to-b from-[#fff6e6] to-[#fde8eb] p-5">
-              <p className="flex items-center justify-center gap-2 text-3xl font-black text-[#c0566b]"><Coins size={28}/>+{award.points} pt</p>
+              <p className="flex items-center justify-center gap-2 text-3xl font-black text-[#c0566b]"><Coins size={28}/><Burst>+<CountUp value={award.points}/> pt</Burst></p>
               <p className="mt-1 text-base">{L(`${pName}をゲットしました！`, `You earned ${pName}!`)}</p>
               {award.nickname && (
                 <p className="mt-3 rounded-xl bg-[#f1f4ec] px-3 py-2 text-base">
@@ -135,14 +137,15 @@ export function PollVote({id, via}: {id: string; via?: string}) {
           <section className="mt-4 rounded-2xl border border-[#dee2d6] bg-white p-5"><h2 className="mb-3 text-lg font-bold">{L('結果', 'Results')}</h2><ResultBars a={data.results.a} b={data.results.b} labels={{a: label('a'), b: label('b')}}/></section>
         )}
 
-        <fieldset className="mt-6 grid gap-4 sm:grid-cols-2" disabled={!data.canVote}>
+        <fieldset className="relative mt-6 grid gap-4 sm:grid-cols-2" disabled={!data.canVote}>
           <legend className="sr-only">{L('AかBを選んでください', 'Choose A or B')}</legend>
+          <span aria-hidden="true" className="cs-vs pointer-events-none grid size-12 place-items-center rounded-full border-[3px] border-white bg-[#f4c47a] text-base font-black text-[#5a3a0a] shadow-lg">VS</span>
           {poll.options.map((o, i) => {
             const isSel = selected === o.key;
             return (
               <div key={o.key} className={`cs-rise relative ${i ? 'cs-d4' : 'cs-d3'}`}>
                 <label
-                  className={`cs-lift cs-press cs-soft-card block cursor-pointer overflow-hidden rounded-[28px] border-[3px] bg-white transition-shadow ${isSel ? 'cs-bounce' : ''} has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-[#bd643c] ${isSel ? 'shadow-lg' : 'border-[#dee2d6]'}`}
+                  className={`cs-lift cs-press cs-soft-card block cursor-pointer overflow-hidden rounded-[28px] border-[3px] bg-white transition-shadow ${isSel ? 'cs-bounce cs-selected-glow' : ''} has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-[#bd643c] ${isSel ? 'shadow-lg' : 'border-[#dee2d6]'}`}
                   style={isSel ? {borderColor: OPTION_COLORS[o.key]} : undefined}
                 >
                   <input type="radio" name="choice" value={o.key} checked={isSel} onChange={() => setSelected(o.key)} className="sr-only"/>

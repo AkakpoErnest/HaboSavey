@@ -8,6 +8,7 @@ import {ConnectedGames} from './connected-games';
 import {Suspense} from 'react';
 import {GuestAccountCard} from './guest-account';
 import {HoyaBoya} from '@/components/mascot';
+import {CountUp} from '@/components/motion';
 
 export function PointsHistory() {
   const {locale, L} = useL();
@@ -42,7 +43,7 @@ export function PointsHistory() {
       : error ? <Notice tone="error">{error}<button className="mt-2 block min-h-11 font-semibold underline" onClick={() => {setError(null); setAttempt(n => n + 1);}}>{L('再試行', 'Retry')}</button></Notice>
       : !data ? <p role="status">{L('読み込み中…', 'Loading points…')}</p> : <>
         <div className="cs-soft-card border border-[#f6dfe3] bg-gradient-to-b from-white to-[#fde8eb] p-6">
-          <p>{L('残高', 'Balance')}</p><p className="my-3 text-4xl font-bold tabular-nums">{data.balance.toLocaleString(locale)} <span className="text-xl">pt</span></p>
+          <p>{L('残高', 'Balance')}</p><p className="my-3 text-4xl font-bold tabular-nums"><CountUp value={data.balance}/> <span className="text-xl">pt</span></p>
           <p>{L('今日の獲得', 'Earned today')}: {data.todayEarned} / {data.dailyCap} pt</p>
           <p className="mt-2 text-sm">{L('1日の上限は日本時間の午前0時にリセットされます。', 'The daily limit resets at midnight Japan time.')}</p>
         </div>
