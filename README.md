@@ -16,11 +16,12 @@ Citizen Sentiment is a simple app that enables Kesennuma city officials to gathe
 | **AI option B** | Staff upload a real photo as A; an image model renders the proposal as B from an editable brief (default: Kit's wooden promenade prompt). Labelled "AI image". | staff poll form |
 | **Staff admin** | Create polls, print QR codes, open/close polls, moderation queue. | `/ja/admin/polls` |
 | **Resident verification** | City-hall QR codes mark a resident as verified (needed to earn points, optional for voting). | `/q/<code>` |
-| **Points (phase 1)** | Verified residents earn はまらいんやポイント for taking part, never for a choice: vote +10, survey +20, approved proposal +50, on-site QR check-in +5/day. Capped at 100/day. Balance/history UI and award notices for poll votes and QR check-ins. | `/ja/me/points`, `GET /api/points` |
+| **Points (phase 1)** | Verified residents earn はまらいんやポイント for taking part, never for a choice: vote +10, survey +20, approved proposal +50, on-site QR check-in +5/day. Capped at 100/day (atomic, per-user lock). Balance chip in the header, history page, and "+N pt" notices after poll votes and QR check-ins. | `/ja/me/points`, `GET /api/points` |
 | **Game link** | KesenMemento (3D Kesennuma game) players connect their account and collect place stamps and ship-act badges (+2 / +10 pt, own daily cap). Connections can be listed and revoked. | `/ja/connect`, `/api/game/*`, [`integrations/kesenmemento/`](integrations/kesenmemento/INTEGRATION.md) |
 | **On-chain (phase 2–3)** | Ethereum-L2 contracts: HamaPoints (non-transferable between wallets, only into approved projects), GameVault, soulbound collectibles. 16 Foundry tests. Not deployed yet. | [`contracts/`](contracts/), [`docs/POINTS-AND-GAME.md`](docs/POINTS-AND-GAME.md) |
 | **Hoya Boya** | Kesennuma's official mascot on home, list, thank-you and error screens: official city art, unaltered, always credited, never animated. | `components/mascot.tsx` |
 | **Motion** | Living harbour hero, entrances, scroll reveals, vote confetti, growing result bars. Off under reduced motion. | `app/globals.css` |
+| **Artwork** | AI-generated concept art by Codex: a wooden-promenade option B (`naiwan-b-promenade.jpg`, a speculative concept, always labelled "AI image"), a share card and app icons. Prompts in `public/images/ASSETS.md`. | `public/images/`, `public/icons/` |
 | Also in the API | Photo challenges ("make it better" with AI), surveys, email magic-link sign-in. | `app/api/` |
 
 ## Run locally (no accounts or keys needed)
@@ -49,15 +50,32 @@ whenever the tunnel restarts (so reprint QR codes), and the Mac must stay awake.
 set `VOTER_KEY_SECRET`, `GAME_LINK_SECRET` and `DEV_STORAGE_SECRET` (32+ random chars each; production refuses to sign without them), then `supabase/triggers.sql`, `rls.sql` and `storage.sql` (plus `seed.sql` for demo data), and deploy to Vercel. Set `APP_URL`
 to the public URL, because printed QR codes encode it, and set `GAME_ORIGINS` to the game's origin(s). Never commit credentials.
 
+## Who needs an account?
+
+| Who | Account? |
+|---|---|
+| Citizens voting on an A/B poll | **No.** Scan the QR code, pick A or B (one vote per device). |
+| Playing KesenMemento | **No.** The game works as before for everyone. |
+| Collecting stamps in the game | A Citizen Sentiment account (email sign-in, no password), linked via **Connect**. |
+| Earning points | A **verified resident** account (city-hall QR code, or verified later by staff). |
+| City staff | A staff account. |
+| The game's author | No account with us; the game just includes `cs-connect.js` and tells us its web address. |
+
 ## Status and open decisions
 
-- Network: **Ethereum**, recommended on an L2 (e.g. Base) because mainnet gas is too costly per vote. Wallet provider is being compared in `docs/points-chain-options.md`.
+- Network: **Ethereum**. Recommended pilot (see [docs/points-chain-options.md](docs/points-chain-options.md)): **Base Sepolia** (an Ethereum L2 testnet) with **Privy** email wallets and app-paid gas, keeping the Postgres ledger as the source of truth. Mainnet is a later decision after measured costs.
 - "Hoya Boya points" as a name, and Hoya Boya in the game or collectibles, need **Kesennuma City's approval**; the default name is はまらいんやポイント.
 - On-chain points need a legal check (Japan's Payment Services Act) before mainnet.
 - Integration with KesenMemento is pending with its author (ss251).
 
+## Working on this repo
+
+Claude and Codex (GPT) build this together via [CONVERSATION.md](CONVERSATION.md) and [HANDOFF.md](HANDOFF.md). Every finished change
+is committed and pushed to `main` once `npm run typecheck`, `npm run lint` and `npm run build` pass, with this README updated in the
+same push.
+
 ## Docs
 
-[ARCHITECTURE.md](ARCHITECTURE.md) (design + API contract) · [docs/POINTS-AND-GAME.md](docs/POINTS-AND-GAME.md) ·
+[ARCHITECTURE.md](ARCHITECTURE.md) (design + API contract) · [docs/POINTS-AND-GAME.md](docs/POINTS-AND-GAME.md) · [docs/points-chain-options.md](docs/points-chain-options.md) ·
 [integrations/kesenmemento/INTEGRATION.md](integrations/kesenmemento/INTEGRATION.md) · coordination between Claude and Codex/GPT:
 [CONVERSATION.md](CONVERSATION.md), [HANDOFF.md](HANDOFF.md).
