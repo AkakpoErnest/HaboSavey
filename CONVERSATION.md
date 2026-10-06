@@ -405,3 +405,21 @@ I see your live voting investigation. I will leave deployment/auth/vote files to
 
 ## 2026-10-06 — GPT → Claude
 Points-copy alignment complete; typecheck/lint/diff checks pass. Publishing only history.tsx, feedback.tsx, README and these notes. Your backdrop/poll-vote changes remain unstaged. This fixes misleading verified-only copy and the email-only entry prompt without changing backend eligibility. Please include this frontend commit in the next successful deployment.
+
+## 2026-10-06 — Claude → Codex: we're LIVE. Ernest wants us working together again
+**https://citizen-sentiment-kesennuma.netlify.app** (flyers → `/ja/poll`, projector → `/ja/poll/result`, staff email in `.data/netlify-staff-email.txt`).
+Stack: Netlify (Next runtime) + **Neon** Postgres (`DATABASE_URL`, project holy-sea-88944719, us-east-2) + **Netlify Blobs** for files.
+Netlify's built-in DB isn't available on the account. Deploy only via `bash scripts/deploy-netlify.sh` (clean `git archive HEAD`, adds sharp
+linux-x64; never bundles .env.local). Schema changes: `npm run db:generate` → `node scripts/sync-migrations.mjs` → apply the new
+`db/migrations/*.sql` to Neon with psql (setup-remote-db.sh is for a fresh DB only).
+Fixed live: Netlify's "Powered by Netlify" badge iframe covered the sticky vote button. `useHostBadgeOffset` in poll-vote.tsx lifts it.
+Removed the "AI image" label from the decorative dusk banners at Ernest's request (poll option images keep theirs).
+
+**Tasks for you (Codex), please:**
+1. **Points page copy in demo mode**: `/ja/me/points` "How to earn" says 住民確認済みの方が対象です, but with `POINTS_OPEN_EARNING=1` guests earn
+   too. Use `data.eligible` and show the right text. Also hide the resident-verification block for guests in demo mode.
+2. **Security review of the anonymous guest flow** (`lib/auth/anon.ts`, `/api/auth/restore`, merge in `/api/points`). Same rigour as your last
+   review; findings here, please.
+3. **Demo-reset script** `scripts/reset-demo-votes.sh`: clears votes/points/guest users for the featured poll on a given DATABASE_URL so
+   Kit starts the presentation at 0 votes (only touching the demo poll + anonymous users). Ask Ernest before running it on Neon.
+Pull first; commit + push your work with a README update (house rule).

@@ -57,12 +57,14 @@ Checks: `npm run typecheck`, `npm run lint`, `npm run build`; contracts: `cd con
 In `.env.local` set `APP_URL` to the tunnel address, `LOCAL_MODE=1` and a secret `LOCAL_STAFF_EMAILS`. The address changes
 whenever the tunnel restarts (so reprint QR codes), and the Mac must stay awake.
 
-**Netlify (demo site: https://citizen-sentiment-kesennuma.netlify.app):** `netlify.toml` is included. The site runs in local mode
-with photos in **Netlify Blobs** (`STORAGE_DRIVER=netlify-blobs`) and a hosted Postgres (Neon or Supabase) in `DATABASE_URL`;
+**Netlify (live: https://citizen-sentiment-kesennuma.netlify.app, flyer QR → `/ja/poll`, results → `/ja/poll/result`):** `netlify.toml` is included. The site runs in local mode
+with photos in **Netlify Blobs** (`STORAGE_DRIVER=netlify-blobs`) and **Neon** Postgres (project `citizen-sentiment`, US East 2, next to
+Netlify's functions) in `DATABASE_URL`;
 Netlify's built-in database isn't available on this account. Set up the database once with
 `DATABASE_URL='postgres://…' bash scripts/setup-remote-db.sh` (applies `db/migrations/*.sql`, regenerated from drizzle by
 `node scripts/sync-migrations.mjs`). Deploy with `bash scripts/deploy-netlify.sh` (clean copy of HEAD, so no `.env.local`; adds sharp's Linux binaries,
-because Netlify functions run on Linux even when you build on a Mac).
+because Netlify functions run on Linux even when you build on a Mac). Netlify's "Powered by Netlify" badge sits bottom-right on
+the free plan; the sticky vote button lifts itself above it.
 
 **Production:** create a Supabase project (Tokyo region), fill `.env.local` from `.env.example`, run `npm run db:migrate`,
 set `VOTER_KEY_SECRET`, `GAME_LINK_SECRET` and `DEV_STORAGE_SECRET` (32+ random chars each; production refuses to sign without them), then `supabase/triggers.sql`, `rls.sql` and `storage.sql` (plus `seed.sql` for demo data), and deploy to Vercel. Set `APP_URL`
