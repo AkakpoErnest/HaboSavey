@@ -15,9 +15,23 @@ export type EarnReason = keyof typeof EARN_RULES;
 export const DAILY_CAP = Number(process.env.POINTS_DAILY_CAP ?? 100);
 
 type UserLike = { id: string; verifiedLocal: boolean };
+type Db = ReturnType<typeof getDb>;
+/** The db or a transaction: lets cap reads happen inside the same locked transaction as the insert. */
+export type Exec = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
 
-export async function earnedToday(userId: string): Promise<number> {
-  const [row] = await getDb()
+/**
+ * Runs fn in a transaction holding a per-user advisory lock, so concurrent awards for the same person
+ * are serialized and daily caps can't be exceeded by parallel requests.
+ */
+export async function withUserLock<T>(userId: string, fn: (tx: Exec) => Promise<T>): Promise<T> {
+  return getDb().transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${"points:" + userId}, 0))`);
+    return fn(tx);
+  });
+}
+
+export async function earnedToday(userId: string, exec: Exec = getDb()): Promise<number> {
+  const [row] = await exec
     .select({ n: sql<number>`coalesce(sum(${schema.pointsLedger.amount}), 0)::int` })
     .from(schema.pointsLedger)
     .where(
@@ -39,15 +53,16 @@ export async function earnedToday(userId: string): Promise<number> {
 export async function awardPoints(user: UserLike | null, reason: EarnReason, refId: string): Promise<number> {
   if (!user?.verifiedLocal) return 0;
   try {
-    const remaining = DAILY_CAP - (await earnedToday(user.id));
-    const amount = Math.min(EARN_RULES[reason], remaining);
-    if (amount <= 0) return 0;
-    const inserted = await getDb()
-      .insert(schema.pointsLedger)
-      .values({ userId: user.id, amount, reason, refId })
-      .onConflictDoNothing()
-      .returning({ id: schema.pointsLedger.id });
-    return inserted.length ? amount : 0;
+    return await withUserLock(user.id, async (tx) => {
+      const amount = Math.min(EARN_RULES[reason], DAILY_CAP - (await earnedToday(user.id, tx)));
+      if (amount <= 0) return 0;
+      const inserted = await tx
+        .insert(schema.pointsLedger)
+        .values({ userId: user.id, amount, reason, refId })
+        .onConflictDoNothing()
+        .returning({ id: schema.pointsLedger.id });
+      return inserted.length ? amount : 0;
+    });
   } catch (err) {
     console.error("[points] award failed", reason, refId, err);
     return 0;

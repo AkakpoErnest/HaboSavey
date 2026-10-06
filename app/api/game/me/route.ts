@@ -8,7 +8,7 @@ import { pointsBalance } from "@/lib/points";
 export const OPTIONS = (req: Request) => new Response(null, { status: 204, headers: corsHeaders(req) });
 
 export const GET = withCors(route(async (req) => {
-  const { userId, app } = verifyGameToken(req.headers.get("authorization"));
+  const { userId, app } = await verifyGameToken(req.headers.get("authorization"));
   const db = getDb();
   const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId));
   if (!user) throw new HttpError("unauthorized", "Account not found; please connect again");

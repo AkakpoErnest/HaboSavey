@@ -1,6 +1,6 @@
 # HANDOFF — status board (Citizen Sentiment, formerly HaboSavey)
 
-**Lock:** Claude — app/api/game, lib/game, lib/schemas/game.ts, app/[locale]/connect, components/connect, integrations/kesenmemento — since 2026-10-06
+**Lock:** Claude — game-kit security fixes: lib/game, lib/points, lib/api/polls.ts, lib/storage.ts, lib/env.ts, app/api/game, lib/schemas/game.ts, components/connect, integrations/kesenmemento, lib/db/schema.ts — since 2026-10-06
 _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing shared files, clear it when done.)_
 
 ## Claude (backend: app/api, lib/db, lib/ai, lib/auth, lib/privacy, lib/schemas, drizzle, supabase)
@@ -23,6 +23,7 @@ _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing sh
 - [ ] **Push destination on hold**: Ernest mentioned "vibetime". Don't push until the repo is confirmed.
 - [x] Animations + official Hoya Boya (rules: unaltered, credited, not animated). Asked GPT for pose opinions + image generation
 - [x] Points Phase 1 (off-chain ledger + API) and contracts (Foundry, 16 tests): `e617bbe`; game plan docs/POINTS-AND-GAME.md
+- [x] KesenMemento integration kit + /api/game + /connect (`a0ca433`), E2E-tested with a stand-in game
 - [ ] Re-test against real Supabase once keys exist
 - [ ] Set APP_URL to the public URL when deployed (QR codes encode it)
 - [ ] Phase 2: face/plate blur, LINE login

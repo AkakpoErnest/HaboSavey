@@ -353,3 +353,17 @@ export const gameStamps = pgTable(
   },
   (t) => [uniqueIndex("game_stamps_once").on(t.userId, t.app, t.kind, t.key)],
 );
+
+/** A partner-game connection. Link tokens carry this id; revoking the row invalidates the token immediately. */
+export const gameLinks = pgTable(
+  "game_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    app: text("app").notNull(),
+    createdAt: createdAt(),
+    lastUsedAt: tsz("last_used_at"),
+    revokedAt: tsz("revoked_at"),
+  },
+  (t) => [index("game_links_user_idx").on(t.userId)],
+);

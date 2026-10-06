@@ -1,32 +1,58 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, sql } from "drizzle-orm";
+import { z } from "zod";
 import { HttpError } from "@/lib/api/http";
 import { startOfJstDay } from "@/lib/ai/run-job";
-import type { GameApp } from "@/lib/schemas";
+import { GameApp } from "@/lib/schemas";
+import { requireSecret } from "@/lib/secrets";
 import { getDb, schema } from "@/lib/db";
+import type { Exec } from "@/lib/points";
 
-/** Link tokens let a partner game act for a user on /api/game/* only. Signed with HMAC; 30 days. */
+/** Link tokens let a partner game act for a user on /api/game/* only. HMAC-signed, 30 days, revocable via game_links. */
 const TTL_SECONDS = 60 * 60 * 24 * 30;
-const secret = () => process.env.GAME_LINK_SECRET ?? process.env.VOTER_KEY_SECRET ?? "citizen-sentiment-local-game";
-const b64 = (s: string | Buffer) => Buffer.from(s).toString("base64url");
+const secret = () => requireSecret("GAME_LINK_SECRET", "citizen-sentiment-local-game");
 const sign = (body: string) => createHmac("sha256", secret()).update(body).digest("base64url");
 
-export function issueGameToken(userId: string, app: GameApp) {
+const TokenPayload = z.object({ lid: z.string().uuid(), sub: z.string().uuid(), app: GameApp, exp: z.number().int().positive() });
+
+export const GAME_NAMES: Record<GameApp, { ja: string; en: string }> = {
+  kesenmemento: { ja: "ケセンメメント（気仙沼リビングシティ）", en: "KesenMemento (Kesennuma Living City)" },
+};
+
+/** Creates a revocable link row and a token bound to it. */
+export async function issueGameToken(userId: string, app: GameApp) {
+  const [link] = await getDb().insert(schema.gameLinks).values({ userId, app }).returning({ id: schema.gameLinks.id });
   const exp = Math.floor(Date.now() / 1000) + TTL_SECONDS;
-  const body = b64(JSON.stringify({ sub: userId, app, exp }));
-  return { token: `${body}.${sign(body)}`, expiresAt: new Date(exp * 1000).toISOString() };
+  const body = Buffer.from(JSON.stringify({ lid: link.id, sub: userId, app, exp })).toString("base64url");
+  return { token: `${body}.${sign(body)}`, expiresAt: new Date(exp * 1000).toISOString(), linkId: link.id };
 }
 
-export function verifyGameToken(header: string | null): { userId: string; app: GameApp } {
-  const token = header?.match(/^Bearer\s+(.+)$/i)?.[1];
-  const [body, sig] = token?.split(".") ?? [];
-  if (!body || !sig) throw new HttpError("unauthorized", "Connect your Citizen Sentiment account first");
+const unauthorized = (msg = "Invalid link token") => new HttpError("unauthorized", msg);
+
+/** Verifies signature, payload shape, expiry and that the link hasn't been revoked. */
+export async function verifyGameToken(header: string | null): Promise<{ userId: string; app: GameApp; linkId: string }> {
+  const token = header?.match(/^Bearer\s+(\S+)$/i)?.[1];
+  if (!token) throw unauthorized("Connect your Citizen Sentiment account first");
+  const parts = token.split(".");
+  if (parts.length !== 2 || !parts[0] || !parts[1]) throw unauthorized();
+  const [body, sig] = parts;
   const expected = Buffer.from(sign(body));
   const given = Buffer.from(sig);
-  if (expected.length !== given.length || !timingSafeEqual(expected, given)) throw new HttpError("unauthorized", "Invalid link token");
-  const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as { sub: string; app: GameApp; exp: number };
-  if (payload.exp < Date.now() / 1000) throw new HttpError("unauthorized", "Link expired; please connect again");
-  return { userId: payload.sub, app: payload.app };
+  if (expected.length !== given.length || !timingSafeEqual(expected, given)) throw unauthorized();
+  let payload: z.infer<typeof TokenPayload>;
+  try {
+    payload = TokenPayload.parse(JSON.parse(Buffer.from(body, "base64url").toString("utf8")));
+  } catch {
+    throw unauthorized();
+  }
+  if (!Number.isFinite(payload.exp) || payload.exp <= Date.now() / 1000) throw unauthorized("Link expired; please connect again");
+  const [link] = await getDb()
+    .update(schema.gameLinks)
+    .set({ lastUsedAt: new Date() })
+    .where(and(eq(schema.gameLinks.id, payload.lid), eq(schema.gameLinks.userId, payload.sub), eq(schema.gameLinks.app, payload.app), isNull(schema.gameLinks.revokedAt)))
+    .returning({ id: schema.gameLinks.id });
+  if (!link) throw unauthorized("This connection was removed; please connect again");
+  return { userId: payload.sub, app: payload.app, linkId: payload.lid };
 }
 
 /** Allowed browser origins for partner games (comma-separated GAME_ORIGINS; local dev defaults). */
@@ -52,8 +78,8 @@ export function corsHeaders(req: Request): Record<string, string> {
 export const GAME_RULES = { place_visited: 2, act_completed: 10 } as const;
 export const GAME_DAILY_CAP = Number(process.env.GAME_POINTS_DAILY_CAP ?? 30);
 
-export async function gamePointsToday(userId: string): Promise<number> {
-  const [row] = await getDb()
+export async function gamePointsToday(userId: string, exec: Exec = getDb()): Promise<number> {
+  const [row] = await exec
     .select({ n: sql<number>`coalesce(sum(${schema.pointsLedger.amount}), 0)::int` })
     .from(schema.pointsLedger)
     .where(

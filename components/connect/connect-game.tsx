@@ -41,7 +41,8 @@ export function ConnectGame() {
         <HoyaBoya pose="wave" height={110} say={L('ゲームでもポイントやスタンプが集まるよ！', 'Collect points and stamps in the game too!')}/>
         <ul className="space-y-3 rounded-2xl border border-[#dee2d6] bg-white p-5 text-base leading-relaxed">
           <li className="flex gap-3"><Gamepad2 className="mt-1 shrink-0" size={20}/>{L('ゲーム内で訪れた場所のスタンプと、船のストーリーのバッジが記録されます。', 'Places you visit and ship-story acts you finish are recorded as stamps and badges.')}</li>
-          <li className="flex gap-3"><ShieldCheck className="mt-1 shrink-0" size={20}/>{L('ゲームに渡るのは、表示名・ポイント残高・スタンプだけです。メールアドレスや投票内容は共有されません。', 'The game only sees your display name, points and stamps, never your email or how you voted.')}</li>
+          <li className="flex gap-3"><ShieldCheck className="mt-1 shrink-0" size={20}/>{L('ゲームが見られるのは、表示名・住民確認済みかどうか・ポイント残高・スタンプです。ゲームは訪問やクリアの記録を送り、スタンプとポイントが付与されることがあります。メールアドレスや投票内容は共有されません。', 'The game can see your display name, whether you are a verified resident, your points and your stamps, and it can send visit/completion events that add stamps and points. It never sees your email or how you voted.')}</li>
+          <li className="flex gap-3"><ShieldCheck className="mt-1 shrink-0" size={20}/>{L('連携はいつでも「マイページ › ポイント」から解除できます。', 'You can disconnect at any time from My page › Points.')}</li>
         </ul>
         {error && <Notice tone="error">{error}</Notice>}
         {me === undefined ? <p className="text-base">{L('読み込み中…', 'Loading…')}</p>

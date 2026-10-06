@@ -12,7 +12,7 @@
 
 const TOKEN_KEY = 'cs.token';
 const STATE_KEY = 'cs.state';
-const SENT_KEY = 'cs.sent';
+const SENT_PREFIX = 'cs.sent:';
 
 const TEXT = {
   ja: { connect: '市民の声と連携', pts: 'pt', stamps: 'スタンプ', newStamp: '新しいスタンプ！', points: 'ポイント', expired: '連携の有効期限が切れました' },
@@ -29,8 +29,13 @@ export function createCitizenSentiment({ baseUrl, app = 'kesenmemento', lang = '
   let chip = null;
 
   const token = () => storage.get(TOKEN_KEY);
-  const sent = () => new Set(JSON.parse(storage.get(SENT_KEY) || '[]'));
-  const markSent = (k) => { const s = sent(); s.add(k); storage.set(SENT_KEY, JSON.stringify([...s].slice(-300))); };
+  // "Already sent" memory is per game + per account (the token's subject), so a second account on the same device
+  // still collects its own stamps. Corrupt storage is treated as empty.
+  const sentKey = () => `${SENT_PREFIX}${app}:${tokenSubject(token()) ?? 'anon'}`;
+  const sent = () => {
+    try { const v = JSON.parse(storage.get(sentKey()) || '[]'); return new Set(Array.isArray(v) ? v : []); } catch { return new Set(); }
+  };
+  const markSent = (k) => { const s = sent(); s.add(k); storage.set(sentKey(), JSON.stringify([...s].slice(-300))); };
   const emit = () => listeners.forEach((fn) => { try { fn(me); } catch { /* listener error */ } });
 
   async function call(path, init = {}) {
@@ -55,7 +60,7 @@ export function createCitizenSentiment({ baseUrl, app = 'kesenmemento', lang = '
   }
 
   async function send(event, dedupeKey) {
-    if (!token() || sent().has(dedupeKey)) return null;
+    if (disabled || !token() || sent().has(dedupeKey)) return null;
     const r = await call('/api/game/events', { method: 'POST', body: JSON.stringify(event) });
     if (r) {
       markSent(dedupeKey);
@@ -88,7 +93,7 @@ export function createCitizenSentiment({ baseUrl, app = 'kesenmemento', lang = '
     /** Sends the player to Citizen Sentiment to sign in and approve; they come back to the current URL. */
     connect() {
       if (disabled) return;
-      const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const state = randomNonce();
       storage.set(STATE_KEY, state);
       const back = location.href.split('#')[0];
       location.href = `${api}/${lang}/connect?` + new URLSearchParams({ app, return: back, state });
@@ -98,15 +103,22 @@ export function createCitizenSentiment({ baseUrl, app = 'kesenmemento', lang = '
     handleRedirect() {
       if (disabled || typeof location === 'undefined' || !location.hash.includes('cs_token=')) return false;
       const p = new URLSearchParams(location.hash.slice(1));
-      const ok = p.get('cs_state') === storage.get(STATE_KEY);
-      if (ok) storage.set(TOKEN_KEY, p.get('cs_token'));
+      const expected = storage.get(STATE_KEY);
+      const returned = p.get('cs_state');
+      const newToken = p.get('cs_token');
+      // Only accept a token we asked for: a non-empty nonce we stored, returned unchanged.
+      const ok = !!expected && expected.length >= 16 && returned === expected && !!newToken;
       storage.remove(STATE_KEY);
+      if (ok) {
+        storage.set(TOKEN_KEY, newToken);
+        storage.remove(sentKey()); // fresh link: re-sync this account's stamps
+      }
       history.replaceState(null, '', location.pathname + location.search);
       if (ok) refresh();
       return ok;
     },
 
-    disconnect() { storage.remove(TOKEN_KEY); storage.remove(SENT_KEY); me = null; emit(); },
+    disconnect() { storage.remove(sentKey()); storage.remove(TOKEN_KEY); me = null; emit(); },
 
     /** { displayName, verifiedResident, points, pointsName, stamps: { places, acts } } or null. */
     me: refresh,
@@ -151,12 +163,32 @@ export function createCitizenSentiment({ baseUrl, app = 'kesenmemento', lang = '
   }
 }
 
+function randomNonce() {
+  const c = globalThis.crypto;
+  if (c?.randomUUID) return c.randomUUID().replace(/-/g, '');
+  if (c?.getRandomValues) return Array.from(c.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+  throw new Error('cs-connect: secure random numbers are unavailable');
+}
+
+/** The account id inside the (signed, not secret) token, used only to namespace local storage. */
+function tokenSubject(tok) {
+  try {
+    const body = tok?.split('.')[0];
+    if (!body) return null;
+    const json = JSON.parse(atob(body.replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof json.sub === 'string' ? json.sub : null;
+  } catch {
+    return null;
+  }
+}
+
 function safeStorage() {
   const mem = new Map();
   const ls = (() => { try { const k = '__cs_t'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; } catch { return null; } })();
+  const guard = (fn, fallback) => { try { return fn(); } catch { return fallback; } };
   return {
-    get: (k) => (ls ? ls.getItem(k) : mem.get(k) ?? null),
-    set: (k, v) => (ls ? ls.setItem(k, v) : mem.set(k, v)),
-    remove: (k) => (ls ? ls.removeItem(k) : mem.delete(k)),
+    get: (k) => guard(() => (ls ? ls.getItem(k) : mem.get(k) ?? null), null),
+    set: (k, v) => guard(() => (ls ? ls.setItem(k, v) : mem.set(k, v))),
+    remove: (k) => guard(() => (ls ? ls.removeItem(k) : mem.delete(k))),
   };
 }

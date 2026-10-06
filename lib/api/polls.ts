@@ -3,6 +3,7 @@ import { count, eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import type { Poll, PollStatus, PollTally } from "@/lib/schemas";
 import { HttpError } from "@/lib/api/http";
+import { requireSecret } from "@/lib/secrets";
 import type { CurrentUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { signUrls } from "@/lib/storage";
@@ -10,7 +11,7 @@ import { signUrls } from "@/lib/storage";
 type PollRow = typeof schema.polls.$inferSelect;
 
 export const VOTER_COOKIE = "cs_vid";
-const secret = () => process.env.VOTER_KEY_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "citizen-sentiment-local";
+const secret = () => requireSecret("VOTER_KEY_SECRET", "citizen-sentiment-local");
 const hmac = (v: string) => createHmac("sha256", secret()).update(v).digest("hex");
 
 /** Max votes from one network (IP) per poll: shared Wi-Fi at city hall or schools is expected. */

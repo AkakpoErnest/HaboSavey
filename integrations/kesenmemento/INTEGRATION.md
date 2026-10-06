@@ -56,7 +56,9 @@ game ──cs.connect()──► https://<cs-host>/ja/connect?app=kesenmemento&r
 game ──GET  /api/game/me        Authorization: Bearer <token>   → { displayName, verifiedResident, points, stamps }
 game ──POST /api/game/events    {type:'place_visited', placeId} | {type:'act_completed', act} → { newStamp, pointsAwarded }
 ```
-- Tokens last 30 days. On 401 the kit clears the token and shows "Connect" again.
+- Tokens last 30 days, and players can disconnect any time from their Citizen Sentiment account (the token stops working
+  immediately). On 401 the kit clears the token and shows "Connect" again.
+- The connect redirect is protected by a random one-time `state` nonce; callbacks the game didn't start are ignored.
 - CORS is open only to the game's origins. Defaults: `http://127.0.0.1:8787`, `http://localhost:8787` and
   `https://kesennuma-living-city-production.up.railway.app`. Tell us about any other origin.
 - Events come from the browser, so they could be faked. That's why rewards are tiny, once per stamp and capped per day.

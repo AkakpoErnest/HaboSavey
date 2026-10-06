@@ -46,3 +46,17 @@ export const GameMeResponse = z.object({
   stamps: z.object({ places: z.array(z.string()), acts: z.array(z.number().int()) }),
 });
 export type GameMeResponse = z.infer<typeof GameMeResponse>;
+
+/** GET /api/game/links (signed-in session): this account's game connections, newest first. */
+export const GameLinkInfo = z.object({
+  id: z.string().uuid(),
+  app: GameApp,
+  appName: z.object({ ja: z.string(), en: z.string() }),
+  createdAt: IsoDate,
+  lastUsedAt: IsoDate.nullable(),
+  revoked: z.boolean(),
+});
+export type GameLinkInfo = z.infer<typeof GameLinkInfo>;
+export const GameLinksResponse = z.object({ links: z.array(GameLinkInfo) });
+export type GameLinksResponse = z.infer<typeof GameLinksResponse>;
+/** DELETE /api/game/links/:id (signed-in session): disconnects; the game's token stops working immediately. */

@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { isLocalMode } from "@/lib/env";
+import { requireSecret } from "@/lib/secrets";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type Bucket = "originals" | "generated" | "survey-uploads" | "poll-images";
@@ -14,7 +15,7 @@ export const ownsPath = (userId: string, p: string) => p.startsWith(`${userId}/`
 // ── Local mode: files under .data/storage, served by /api/dev-storage ────────────────────────────
 const LOCAL_ROOT = path.join(process.cwd(), ".data", "storage");
 const appUrl = () => process.env.APP_URL ?? "http://localhost:3000";
-const devSecret = () => process.env.DEV_STORAGE_SECRET ?? "habosavey-local-dev";
+const devSecret = () => requireSecret("DEV_STORAGE_SECRET", "habosavey-local-dev");
 
 export function localFilePath(bucket: Bucket, p: string): string {
   if (!BUCKETS.includes(bucket) || p.includes("..") || p.startsWith("/")) throw new Error("Bad storage path");

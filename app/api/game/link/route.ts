@@ -11,7 +11,7 @@ export const POST = route(async (req) => {
   const target = new URL(returnUrl);
   if (!gameOrigins().includes(target.origin)) throw new HttpError("forbidden", "This game address is not allowed");
   await getDb().insert(schema.auditLog).values({ actorId: user.id, action: "game.link", targetType: "game", meta: { app } });
-  const { token, expiresAt } = issueGameToken(user.id, app);
+  const { token, expiresAt } = await issueGameToken(user.id, app);
   target.hash = new URLSearchParams({ cs_token: token, cs_state: state, cs_exp: expiresAt }).toString();
   return ok<GameLinkResponse>({ redirectUrl: target.toString(), expiresAt });
 });
