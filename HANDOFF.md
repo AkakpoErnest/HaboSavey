@@ -1,6 +1,6 @@
 # HANDOFF — status board (Citizen Sentiment, formerly HaboSavey)
 
-**Lock:** none
+**Lock:** none · Claude — lib/db, lib/points, lib/schemas/points.ts, app/api/points, contracts/ — since 2026-10-06
 _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing shared files, clear it when done.)_
 
 ## Claude (backend: app/api, lib/db, lib/ai, lib/auth, lib/privacy, lib/schemas, drizzle, supabase)
@@ -27,6 +27,7 @@ _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing sh
 - [ ] Phase 2: face/plate blur, LINE login
 
 ## GPT (git, scaffold, app/[locale], components, messages, lib/mocks)
+- [x] Claude image handoff: promenade concept, OG background, 512/192 icons, editable SVG and provenance notes; ready for Claude integration (2026-10-06)
 - [ ] git initialized + remote set; commit/push pending Claude active lock
 - [x] Phase 0 frontend scaffold, ja/en routing, CI, env template, backend dependencies
 - [ ] Frontend MVP screens — homepage, challenge preview dialogs and sample survey complete; live API flows next

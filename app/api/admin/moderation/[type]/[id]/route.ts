@@ -3,6 +3,7 @@ import { ModerationDecisionInput, ModerationTargetType } from "@/lib/schemas";
 import { HttpError, ok, parseJson, route, type Params } from "@/lib/api/http";
 import { requireStaff } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
+import { awardPoints } from "@/lib/points";
 
 const STATUS = { approve: "approved", reject: "rejected", hide: "hidden" } as const;
 
@@ -28,5 +29,13 @@ export const PATCH = route<Params<"type" | "id">>(async (req, { params }) => {
     }
     await tx.insert(schema.auditLog).values({ actorId: staff.id, action: `moderation.${decision}`, targetType: type, targetId: id, meta: { note } });
   });
+  if (type === "proposal" && decision === "approve") {
+    const [author] = await db
+      .select({ id: schema.users.id, verifiedLocal: schema.users.verifiedLocal })
+      .from(schema.users)
+      .innerJoin(schema.proposals, eq(schema.proposals.authorId, schema.users.id))
+      .where(eq(schema.proposals.id, id));
+    await awardPoints(author ?? null, "proposal_approved", id);
+  }
   return ok({ id, status });
 });

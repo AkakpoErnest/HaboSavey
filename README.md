@@ -27,6 +27,10 @@ Use Node.js 22 or newer. Run `npm ci`, then `npm run dev`. Open http://localhost
   Animations: hero harbour (waves, boats, sun), staggered entrances, scroll reveals, vote confetti and growing result bars,
   all switched off for users who prefer reduced motion.
 
+- **Participation points (Phase 1, off-chain):** verified residents earn points for voting (+10), surveys (+20), approved
+  proposals (+50) and on-site QR check-ins (+5/day), capped at 100/day; `GET /api/points`. On-chain contracts and the
+  KesenMemento game integration: [docs/POINTS-AND-GAME.md](docs/POINTS-AND-GAME.md).
+
 ### Run locally without any keys
 
 `bash scripts/setup-local-db.sh` (needs local Postgres), then `npm run dev`. With the Supabase URL left blank the app runs in

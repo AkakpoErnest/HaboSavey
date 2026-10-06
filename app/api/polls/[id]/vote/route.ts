@@ -4,6 +4,7 @@ import { HttpError, ok, parseJson, route, type Params } from "@/lib/api/http";
 import { effectivePollStatus, loadPollRow, MAX_VOTES_PER_IP, resultsVisibleFor, tallyPoll, voterIdentity } from "@/lib/api/polls";
 import { getCurrentUser, isStaff } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
+import { awardPoints } from "@/lib/points";
 
 /** Cast or change my A/B vote. No account needed unless the poll requires it. */
 export const PUT = route<Params<"id">>(async (req, { params }) => {
@@ -56,8 +57,11 @@ export const PUT = route<Params<"id">>(async (req, { params }) => {
         set: { choice, updatedAt: new Date() },
       });
   }
+  // Points reward taking part (once per poll), not the choice. Changing a vote can't earn again.
+  const pointsAwarded = await awardPoints(user, "poll_vote", id);
   return ok<PollVoteResponse>({
     myChoice: choice,
     results: resultsVisibleFor(poll, isStaff(user), true) ? await tallyPoll(id) : null,
+    pointsAwarded,
   });
 });

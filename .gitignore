@@ -6,3 +6,6 @@ out/
 .DS_Store
 *.tsbuildinfo
 .data/
+contracts/lib/
+contracts/out/
+contracts/cache/

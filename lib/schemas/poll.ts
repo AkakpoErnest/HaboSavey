@@ -61,7 +61,12 @@ export const PollVoteInput = z.object({
 });
 export type PollVoteInput = z.infer<typeof PollVoteInput>;
 
-export const PollVoteResponse = z.object({ myChoice: PollChoice, results: PollTally.nullable() });
+export const PollVoteResponse = z.object({
+  myChoice: PollChoice,
+  results: PollTally.nullable(),
+  /** Participation points just awarded (verified residents, first vote on this poll). */
+  pointsAwarded: z.number().int(),
+});
 export type PollVoteResponse = z.infer<typeof PollVoteResponse>;
 
 /** POST /api/polls (staff). Image paths come from POST /api/uploads with bucket "poll-images". */

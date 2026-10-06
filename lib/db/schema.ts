@@ -307,3 +307,35 @@ export const pollVotes = pgTable(
     index("poll_votes_ip_idx").on(t.pollId, t.ipHash),
   ],
 );
+
+/**
+ * Participation points (Phase 1: off-chain ledger). One row per award/spend; the balance is the sum.
+ * UNIQUE(user_id, reason, ref_id) makes every award idempotent (e.g. one award per poll per person).
+ * `onchain_tx` is filled when the row is mirrored on-chain (Phase 2).
+ */
+export const pointsReasonEnum = pgEnum("points_reason", [
+  "poll_vote",
+  "survey_response",
+  "proposal_approved",
+  "qr_checkin",
+  "game_deposit",
+  "game_reward",
+  "admin_adjust",
+]);
+
+export const pointsLedger = pgTable(
+  "points_ledger",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    reason: pointsReasonEnum("reason").notNull(),
+    refId: text("ref_id").notNull(),
+    onchainTx: text("onchain_tx"),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("points_ledger_once").on(t.userId, t.reason, t.refId),
+    index("points_ledger_user_idx").on(t.userId, t.createdAt),
+  ],
+);

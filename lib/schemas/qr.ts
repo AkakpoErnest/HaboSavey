@@ -21,6 +21,8 @@ export const QrResolveResponse = z.object({
   target: z.object({ type: QrTargetType, id: Id }).nullable(),
   /** False when expired, deactivated or used up. */
   usable: z.boolean(),
+  /** Check-in points just awarded (signed-in verified residents, once per code per day). */
+  pointsAwarded: z.number().int(),
 });
 export type QrResolveResponse = z.infer<typeof QrResolveResponse>;
 

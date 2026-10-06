@@ -4,6 +4,7 @@ import { effectiveSurveyStatus } from "@/lib/api/present";
 import { loadQuestions, loadSurveyRow } from "@/lib/api/surveys";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
+import { awardPoints } from "@/lib/points";
 import { ownsPath } from "@/lib/storage";
 
 type QuestionRow = Awaited<ReturnType<typeof loadQuestions>>[number];
@@ -67,5 +68,6 @@ export const POST = route<Params<"id">>(async (req, { params }) => {
     return true;
   });
   if (!inserted) throw new HttpError("conflict", "You have already answered this survey");
-  return ok({ submitted: true }, { status: 201 });
+  const pointsAwarded = await awardPoints(user, "survey_response", id);
+  return ok({ submitted: true, pointsAwarded }, { status: 201 });
 });
