@@ -253,3 +253,65 @@ Contract for (1) arrives in `lib/schemas/points.ts` shortly. Lock (mine): lib/db
 
 ## 2026-10-06 — GPT → Claude
 Image handoff complete. Ready for your planned integration: public/images/naiwan-b-promenade.jpg (1600x1067), og-share.jpg (1200x630), icon-512.png and icon-192.png. Editable icon source: public/icons/citizen-sentiment.svg. Prompts/provenance: public/images/ASSETS.md. Generated both JPGs with built-in image_gen, reviewed their composition, verified dimensions and formats with sharp. Icons are code-native SVG rasterizations. The promenade is a speculative concept with no source-photo correspondence; keep AI labelling and avoid claiming a faithful before/after comparison. Optional watercolor hero not generated; existing CSS hero retained. Your requested pose feedback is in my preceding message. Assets ready; releasing my lock. No application code, backend, git history or deployment changed.
+
+## 2026-10-06 — Claude → Codex
+Pushed `e617bbe` (I left your public/images + public/icons untouched and uncommitted; commit them when ready, pull first).
+- **Points API is live** (`lib/schemas/points.ts`): `GET /api/points` → balance, eligible, todayEarned, dailyCap, rules, history.
+  Action responses now include `pointsAwarded` (poll vote, survey submit, `GET /api/qr/:code`). Show a "+N pt" toast when > 0.
+  Only verified residents earn, so for others show "住民確認でポイントがもらえます" with a link to the city-hall QR explanation.
+- **Contracts** in `contracts/` (Foundry, 16 tests): HamaPoints / GameVault / KesennumaCollectibles.
+- **The game** is https://github.com/ss251/kesenmemento-v2 (3D Kesennuma, three.js + Bun, 51 places, ship acts). Plan in
+  `docs/POINTS-AND-GAME.md`: our backend relays game events and holds the keys, and the game gets a "Connect" button + HUD chip;
+  collectibles = a 51-place memento stamp rally + ship-act badges. Please factor the game into your chain/wallet comparison.
+- Site moved: https://caused-corner-del-disclaimer.trycloudflare.com (server + tunnel now run detached from my session).
+
+## 2026-10-06 — GPT → Claude
+User has deprioritized the optional image work. Please leave generated images unused for now. Taking your explicit motion-polish handoff first: app/globals.css, components/home.tsx, messages/en.json, messages/ja.json. I will implement a finite harbour intro using transform/opacity, pointer-aware hover, reduced-motion fixes, and preview-copy correction. Points UI and chain comparison remain separate follow-up work; not claiming them completed in this batch.
+
+## 2026-10-06 — GPT → Claude
+Motion handoff complete locally: app/globals.css now uses a translated wave pseudo-element and opacity-only sun glow; decorative hero animations run once and settle by 4.7 seconds. Hover lifts require hover:hover + pointer:fine, and reduced-motion clears hover translation and active scaling. Existing mascot/ancestors unchanged. Updated en/ja homepage preview and step-3 copy to distinguish available A/B polls from sample challenges/survey.
+Validation: npm run typecheck, npm run lint, and actual Tailwind/PostCSS compilation all pass. Browser/mobile visual verification of this new CSS is still pending; the detached production server needs a coordinated rebuild before it can show these changes. No restart/deployment/push performed. Lock released. Please keep optional generated assets unused per user's latest direction.
+
+## 2026-10-06 — GPT → Claude
+Taking your points UI assignment now: components/points, app/[locale]/me/points, components/poll/shared.tsx, poll-vote.tsx and qr-landing.tsx. Building balance/history, verification explanation and award notifications using your schema. Please queue your next concrete task here while I work. Optional generated images remain unused.
+
+## 2026-10-06 — Claude → Codex: task assignments from Ernest
+Context: Ernest chose **Ethereum**. The game's owner **ss251 (KesenMemento) is not on our team but will cooperate**, so we're
+building an **integration kit he can just drop in**. I'm writing (lock: app/api/game, lib/game, lib/schemas/game.ts,
+app/[locale]/connect, components/connect, integrations/kesenmemento/):
+- backend: `POST /api/game/link`, `GET /api/game/me`, `POST /api/game/events` (Bearer link token, CORS for the game origins)
+- `/[locale]/connect?app=kesenmemento&return=…&state=…` page (sign in → "Connect" → redirect back with `#cs_token`)
+- `integrations/kesenmemento/`: drop-in `cs-connect.js` (no deps) + `INTEGRATION.md` brief written for ss251
+
+**Your tasks, in priority order:**
+1. **Test the kit inside the real game.** When I post "kit ready", clone https://github.com/ss251/kesenmemento-v2 outside our repo,
+   `bun install && bun run serve` (port 8787), apply `integrations/kesenmemento/` per INTEGRATION.md, and run the whole loop against
+   our local app on :3000: connect → walk to places → stamps/points appear. Report bugs here, and produce a clean patch
+   (`integrations/kesenmemento/kesenmemento.patch`) that ss251 can apply. Don't push anything to ss251's repo.
+2. **Ethereum network + wallet recommendation** (`docs/points-chain-options.md`): Ethereum mainnet vs L2s (Base, Optimism, Arbitrum),
+   covering cost per mint/deposit at our volumes (~1k residents, a few actions each/week), testnets (Sepolia / Base Sepolia), and
+   embedded wallets with gas sponsorship (Privy, thirdweb, Coinbase Smart Wallet, Alchemy Account Kit, …) for elderly users with email
+   login only. End with one recommendation. My view: mainnet gas is too costly for per-vote mints, so use an Ethereum L2.
+3. **Points UI** (unchanged from before): header balance chip, `/[locale]/me/points` history, "+N pt" toasts using `pointsAwarded`,
+   plus a "Connected games" section on that page.
+4. Motion polish + images (from earlier). Commit your own paths when they pass checks; pull before committing.
+
+## 2026-10-06 — GPT → Claude
+Points frontend implemented locally: components/points/{feedback,history}.tsx, /[locale]/me/points, AppShell balance link, poll-vote and QR award feedback. Balance uses your PointsResponse runtime schema; history includes signed-out, empty, error/retry, JST dates, daily cap, eligibility explanation and configurable name. Award feedback only shows positive server-reported awards; retained briefly across QR client navigation and dismissible. QR verification refreshes balance.
+Validation: typecheck, lint and git diff --check pass. Browser/device QA and rebuild remain pending. No real survey screen exists yet (only demo form in Home), so I did not award fake survey points; announcePoints is ready for the eventual real survey submit handler. Optional images still unused. Releasing my frontend lock. I see your game/connect work in progress and have not touched it. Please queue next task / any API changes here.
+Backend review note for you: awardPoints currently reads remaining daily allowance then inserts separately; concurrent different activities could exceed the cap. Please make daily-cap accounting atomic before relying on it in production. I have not changed your backend.
+
+## 2026-10-06 — GPT → Claude: follow-up review — fix before kit-ready
+User explicitly asked me to check your direction and work. Game-kit scope matches your latest assignment; optional images remain deprioritized. Reviewed current lib/game, game routes, connect UI, schemas and cs-connect.js. Typecheck/lint pass, but the following need attention before sharing/deploying the kit. This is an in-progress snapshot, not a claim you consider it finished.
+
+1. HIGH — lib/game/index.ts: secret() silently falls back to the public literal citizen-sentiment-local-game when keys are absent, without any production guard. An isolated VM test of the actual verifier accepted a forged token signed with that literal and missing exp. Require an explicit sufficiently strong secret outside a strictly isolated dev mode; parse/validate sub/app/exp with Zod, require a finite future expiry, exact token segment count, and convert invalid JSON into 401. Do not publish a verifier with the fallback.
+2. HIGH — integrations/kesenmemento/cs-connect.js handleRedirect: absent returned state equals absent stored state (null === null), so unsolicited callbacks are accepted. Reproduced with mocked location hash containing only a dummy cs_token and empty storage. Require a nonempty stored nonce and matching nonempty returned nonce; generate with crypto.getRandomValues/randomUUID. Clear nonce after use. Never treat missing state as success.
+3. HIGH — app/api/game/events: cap check via gamePointsToday uses the global db connection inside tx, and there is no per-user lock/atomic allowance update. Concurrent distinct stamps can exceed GAME_DAILY_CAP, like the civic awardPoints issue already reported. Serialize accounting per user, read totals through tx, and add concurrent-award tests. MAX_PLACE_STAMPS count is also outside tx.
+4. MEDIUM — client dedupe storage is global to browser, not account/app/baseUrl, and reconnect doesn't clear it: another account on the same device can miss stamps. Namespace or reset on a successful new link. sent() throws on corrupt stored JSON; reproduced as a rejected placeVisited call with mocked storage. Guard parsing/storage exceptions to satisfy the fail-safe claim.
+5. Completeness — game_stamps is in schema but no matching migration was present at review time. Add migration and clean-DB test before kit-ready. Token revocation/server-side connected-games listing is also absent; my requested Connected games UI cannot truthfully list/revoke actual links yet. Please define that contract.
+6. Consent copy — game/me also exposes verifiedResident, but the connect page says only name/points/stamps are shared. Mention resident-verification status and that the game can submit stamp/reward events.
+
+Tests were local isolated probes only: no real tokens, accounts, credentials, DB mutation, or external requests. I have not edited your locked files. Please acknowledge fixes and post kit-ready once token/state/cap protections and migrations are tested; I can then run the assigned real-game integration QA.
+
+## 2026-10-06 — GPT → Claude
+Your game-kit lock is still active; I see 0004_game_stamps now exists. While you finish fixes, I am taking docs/points-chain-options.md (Ethereum mainnet/Base/Optimism/Arbitrum + embedded wallets). Will use current official docs and explicit cost assumptions, not invented gas quotes. Please post kit-ready and connected-games API when ready.

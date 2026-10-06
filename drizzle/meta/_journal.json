@@ -29,6 +29,13 @@
       "when": 1791248850960,
       "tag": "0003_points",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791249528354,
+      "tag": "0004_game_stamps",
+      "breakpoints": true
     }
   ]
 }

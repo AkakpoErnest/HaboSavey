@@ -339,3 +339,17 @@ export const pointsLedger = pgTable(
     index("points_ledger_user_idx").on(t.userId, t.createdAt),
   ],
 );
+
+/** Stamps/badges earned in partner games (e.g. KesenMemento): one row per (user, app, kind, key). */
+export const gameStamps = pgTable(
+  "game_stamps",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    app: text("app").notNull(),
+    kind: text("kind").notNull(),
+    key: text("key").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("game_stamps_once").on(t.userId, t.app, t.kind, t.key)],
+);

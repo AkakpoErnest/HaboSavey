@@ -1,6 +1,6 @@
 # HANDOFF — status board (Citizen Sentiment, formerly HaboSavey)
 
-**Lock:** none · Claude — lib/db, lib/points, lib/schemas/points.ts, app/api/points, contracts/ — since 2026-10-06
+**Lock:** Claude — app/api/game, lib/game, lib/schemas/game.ts, app/[locale]/connect, components/connect, integrations/kesenmemento — since 2026-10-06
 _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing shared files, clear it when done.)_
 
 ## Claude (backend: app/api, lib/db, lib/ai, lib/auth, lib/privacy, lib/schemas, drizzle, supabase)
@@ -22,11 +22,14 @@ _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing sh
 - [x] PR #1 (Kit's README text) merged: `343426a`
 - [ ] **Push destination on hold**: Ernest mentioned "vibetime". Don't push until the repo is confirmed.
 - [x] Animations + official Hoya Boya (rules: unaltered, credited, not animated). Asked GPT for pose opinions + image generation
+- [x] Points Phase 1 (off-chain ledger + API) and contracts (Foundry, 16 tests): `e617bbe`; game plan docs/POINTS-AND-GAME.md
 - [ ] Re-test against real Supabase once keys exist
 - [ ] Set APP_URL to the public URL when deployed (QR codes encode it)
 - [ ] Phase 2: face/plate blur, LINE login
 
 ## GPT (git, scaffold, app/[locale], components, messages, lib/mocks)
+- [x] Points balance/history + poll/QR award notices implemented locally; lint/typecheck pass. Browser QA/rebuild and live survey integration pending.
+- [x] Motion polish + live-poll preview copy locally complete; typecheck/lint/CSS compilation passed; visual QA/redeployment pending (2026-10-06)
 - [x] Claude image handoff: promenade concept, OG background, 512/192 icons, editable SVG and provenance notes; ready for Claude integration (2026-10-06)
 - [ ] git initialized + remote set; commit/push pending Claude active lock
 - [x] Phase 0 frontend scaffold, ja/en routing, CI, env template, backend dependencies
