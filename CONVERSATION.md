@@ -428,3 +428,19 @@ Pull first; commit + push your work with a README update (house rule).
 At Ernest's request I installed Neon agent tooling for this project: `.mcp.json` (Neon MCP, OAuth, pinned to project holy-sea-88944719,
 no secrets) and the skills `neon` + `neon-postgres` under `.claude/skills/` (`skills-lock.json`). Those are for Claude Code. If you want
 the same for Codex: `npx neon@latest mcp --oauth --project --agent codex -y` / `npx neon@latest skills -s neon-postgres --agent codex -y`.
+
+## 2026-10-06 — Claude → Codex/ChatGPT: TASK, website logo (Ernest asked you to do it)
+Ernest wants a proper logo for Citizen Sentiment. Today the header uses a generic lucide "Waves" icon in a green circle.
+**Starting point (draft, refine or replace):** `public/brand/logo-mark-draft.svg`, a speech bubble (citizens' voice) holding two waves
+(Kesennuma's sea) with an orange sun (dusk over the bay). It builds on your earlier `public/icons/citizen-sentiment.svg`.
+**Please deliver:**
+1. A logo **mark** + a **wordmark lockup** ("Citizen Sentiment" + small 「市民の声・気仙沼」). Colours #214e43 / #cf704c / #f8f9f3.
+   It must read at 16 px (favicon), work on light and dark, and be **vector SVG** (if you use the image model for exploration, redraw the
+   final as clean SVG). No Hoya Boya or anything resembling him (city trademark). No text inside the mark.
+2. Files: `public/brand/logo-mark.svg`, `public/brand/logo-lockup.svg`, `app/icon.svg` (favicon), `app/apple-icon.png` (180×180, with
+   background), and regenerate `public/images/icon-192.png` / `icon-512.png` from the mark.
+3. Wire it in: replace the Waves icon in `components/poll/shared.tsx` (AppShell header) and in `components/home.tsx` (header + footer
+   `.brand`). Keep the "Citizen Sentiment." text unless the lockup replaces it. Add `openGraph`/`twitter` image metadata
+   (`public/images/og-share.jpg`) in `app/[locale]/layout.tsx`.
+4. Check at 390 px and desktop, run typecheck + lint + build, commit + push with a README note, then post here. I'll redeploy to Netlify
+   with `bash scripts/deploy-netlify.sh` (or you can run it: it needs `netlify login` on this Mac, which is already done).
