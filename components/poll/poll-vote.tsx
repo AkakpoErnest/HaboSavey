@@ -3,6 +3,7 @@ import {useEffect, useRef, useState} from 'react';
 import Link from 'next/link';
 import {Check, Maximize2, X} from 'lucide-react';
 import type {PollChoice, PollDetailResponse, PollVoteResponse} from '@/lib/schemas';
+import {announcePoints} from '@/components/points/feedback';
 import {Button} from '@/components/ui/button';
 import {HoyaBoya} from '@/components/mascot';
 import {AppShell, ApiFetchError, Notice, OPTION_COLORS, ResultBars, api, pick, useL} from './shared';
@@ -40,6 +41,7 @@ export function PollVote({id, via}: {id: string; via?: string}) {
     try {
       const res = await api<PollVoteResponse>(`/api/polls/${id}/vote`, {method: 'PUT', json: {choice: selected, ...(via ? {via} : {})}});
       setData((d) => d && {...d, myChoice: res.myChoice, results: res.results});
+      announcePoints(res.pointsAwarded);
       setChanging(false);
       setJustVoted(true);
       window.scrollTo({top: 0, behavior: 'smooth'});

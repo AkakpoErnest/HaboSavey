@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {BadgeCheck} from 'lucide-react';
 import type {MeResponse, QrRedeemResponse, QrResolveResponse} from '@/lib/schemas';
+import {announcePoints, refreshPoints} from '@/components/points/feedback';
 import {Button} from '@/components/ui/button';
 import {HoyaBoya} from '@/components/mascot';
 import {AppShell, ApiFetchError, Notice, api, useL} from './shared';
@@ -21,6 +22,7 @@ export function QrLanding({code}: {code: string}) {
     api<QrResolveResponse>(`/api/qr/${encodeURIComponent(code)}`)
       .then((r) => {
         setQr(r);
+        announcePoints(r.pointsAwarded);
         if (r.kind === 'link' && r.usable && r.target) {
           const t = r.target;
           const path = t.type === 'poll' ? `/p/${t.id}?via=${code}` : t.type === 'survey' ? `/surveys/${t.id}` : t.type === 'challenge' ? `/challenges/${t.id}` : `/create?placeId=${t.id}`;
@@ -37,6 +39,7 @@ export function QrLanding({code}: {code: string}) {
     try {
       const r = await api<QrRedeemResponse>(`/api/qr/${encodeURIComponent(code)}/redeem`, {method: 'POST'});
       setState(r.alreadyVerified ? 'already' : 'done');
+      refreshPoints();
     } catch (e) { setError((e as Error).message); setState('idle'); }
   }
 

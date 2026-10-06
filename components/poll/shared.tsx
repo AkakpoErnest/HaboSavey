@@ -4,6 +4,7 @@ import {usePathname} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import {useLocale} from 'next-intl';
 import {Waves} from 'lucide-react';
+import {PointsHeader} from '@/components/points/feedback';
 
 /** Inline ja/en strings for the poll + admin screens. */
 export function useL() {
@@ -46,6 +47,7 @@ export function AppShell({children, wide = false}: {children: React.ReactNode; w
           {L('English', '日本語')}
         </Link>
       </header>
+      <PointsHeader/>
       <main id="main" className={`mx-auto px-4 pb-32 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}>{children}</main>
     </div>
   );
