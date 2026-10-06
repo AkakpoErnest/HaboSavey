@@ -61,8 +61,8 @@ whenever the tunnel restarts (so reprint QR codes), and the Mac must stay awake.
 with photos in **Netlify Blobs** (`STORAGE_DRIVER=netlify-blobs`) and a hosted Postgres (Neon or Supabase) in `DATABASE_URL`;
 Netlify's built-in database isn't available on this account. Set up the database once with
 `DATABASE_URL='postgres://…' bash scripts/setup-remote-db.sh` (applies `db/migrations/*.sql`, regenerated from drizzle by
-`node scripts/sync-migrations.mjs`). Deploy from a clean checkout (no `.env.local`), e.g. `git archive HEAD` → `npm ci` →
-`netlify deploy --build --prod`.
+`node scripts/sync-migrations.mjs`). Deploy with `bash scripts/deploy-netlify.sh` (clean copy of HEAD, so no `.env.local`; adds sharp's Linux binaries,
+because Netlify functions run on Linux even when you build on a Mac).
 
 **Production:** create a Supabase project (Tokyo region), fill `.env.local` from `.env.example`, run `npm run db:migrate`,
 set `VOTER_KEY_SECRET`, `GAME_LINK_SECRET` and `DEV_STORAGE_SECRET` (32+ random chars each; production refuses to sign without them), then `supabase/triggers.sql`, `rls.sql` and `storage.sql` (plus `seed.sql` for demo data), and deploy to Vercel. Set `APP_URL`
