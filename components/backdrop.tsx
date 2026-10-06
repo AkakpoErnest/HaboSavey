@@ -1,10 +1,10 @@
 import type {ReactNode} from 'react';
 
 /**
- * Photo banner with readable text on top. The image is an AI-generated concept of Kesennuma bay at dusk
- * (public/images/ASSETS.md), so it is labelled as an AI image, never presented as a real photo.
+ * Photo banner with readable text on top. Decorative background: an AI-generated scene of Kesennuma bay at dusk
+ * (public/images/ASSETS.md). Unlabelled at Ernest's request (2026-10-06); poll option images keep their "AI image" label.
  */
-export function DuskBanner({children, aiLabel, priority = false, className = ''}: {children: ReactNode; aiLabel: string; priority?: boolean; className?: string}) {
+export function DuskBanner({children, priority = false, className = ''}: {children: ReactNode; aiLabel?: string; priority?: boolean; className?: string}) {
   return (
     <section className={`relative isolate overflow-hidden rounded-3xl bg-[#14302a] text-white ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -22,7 +22,6 @@ export function DuskBanner({children, aiLabel, priority = false, className = ''}
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0d241f]/90 via-[#0d241f]/55 to-transparent"/>
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0d241f]/70 via-transparent to-transparent"/>
       {children}
-      <span className="absolute bottom-2 right-3 rounded-full bg-black/45 px-2 py-0.5 text-[11px] text-white/90">{aiLabel}</span>
     </section>
   );
 }

@@ -24,6 +24,7 @@ export function PollVote({id, via}: {id: string; via?: string}) {
   const [zoom, setZoom] = useState<PollChoice | null>(null);
   const [award, setAward] = useState<{points: number; nickname: string | null} | null>(null);
   const zoomRef = useRef<HTMLDialogElement>(null);
+  const badgeOffset = useHostBadgeOffset();
 
   useEffect(() => {
     api<PollDetailResponse>(`/api/polls/${encodeURIComponent(id)}`)
@@ -170,7 +171,7 @@ export function PollVote({id, via}: {id: string; via?: string}) {
       </article>
 
       {data.canVote && (
-        <div className="fixed inset-x-0 bottom-0 border-t border-[#dee2d6] bg-[#f8f9f3]/95 px-4 pt-3 backdrop-blur" style={{paddingBottom: 'max(12px, env(safe-area-inset-bottom))'}}>
+        <div className="fixed inset-x-0 bottom-0 border-t border-[#dee2d6] bg-[#f8f9f3]/95 px-4 pt-3 backdrop-blur" style={{paddingBottom: `calc(max(12px, env(safe-area-inset-bottom)) + ${badgeOffset}px)`}}>
           <div className="mx-auto flex max-w-xl gap-3">
             {changing && <Button variant="outline" className="text-base" onClick={() => { setChanging(false); setSelected(data.myChoice); }}>{L('戻る', 'Cancel')}</Button>}
             <Button className="flex-1 text-base" disabled={!selected || submitting} onClick={submit}>
@@ -206,4 +207,26 @@ function Confetti() {
       })}
     </div>
   );
+}
+
+/**
+ * Hosting badges (e.g. Netlify's fixed "Powered by Netlify" iframe at the bottom-right) can sit on top of our fixed
+ * vote button and swallow taps. Returns the extra bottom space needed to keep the button clear of such a badge.
+ */
+function useHostBadgeOffset() {
+  const [offset, setOffset] = useState(0);
+  useEffect(() => {
+    const measure = () => {
+      const badge = document.getElementById('nl-badge-frame');
+      const r = badge?.getBoundingClientRect();
+      setOffset(r && r.height > 0 && r.top < window.innerHeight ? Math.ceil(window.innerHeight - r.top) + 8 : 0);
+    };
+    measure();
+    const obs = new MutationObserver(measure);
+    obs.observe(document.body, {childList: true});
+    window.addEventListener('resize', measure);
+    const t = setInterval(measure, 1500);
+    return () => { obs.disconnect(); window.removeEventListener('resize', measure); clearInterval(t); };
+  }, []);
+  return offset;
 }
