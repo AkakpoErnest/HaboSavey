@@ -7,6 +7,7 @@ import {pointsName} from './feedback';
 import {ConnectedGames} from './connected-games';
 import {Suspense} from 'react';
 import {GuestAccountCard} from './guest-account';
+import {HoyaBoya} from '@/components/mascot';
 
 export function PointsHistory() {
   const {locale, L} = useL();
@@ -32,13 +33,14 @@ export function PointsHistory() {
     game_deposit: L('ゲームへの移動', 'Game deposit'), game_reward: L('ゲーム報酬', 'Game reward'), admin_adjust: L('管理者による調整', 'Staff adjustment'),
   };
   return <AppShell><section className="space-y-6 pt-5">
-    <h1 className="text-3xl font-bold tracking-tight">{pointsName(locale)}</h1>
+    <h1 className="text-[clamp(1.5rem,6.6vw,2rem)] font-black tracking-tight">{pointsName(locale)}</h1>
+    <HoyaBoya pose="stand" height={120} say={L('まちづくりに参加して、ポイントをためよう！', 'Take part in your town and collect points!')}/>
     <p className="text-base leading-relaxed">{L('どの選択肢を選んだかではなく、まちづくりへの参加でポイントが貯まります。', 'Earn points for participating, regardless of which option you choose.')}</p>
     <Suspense fallback={null}><GuestAccountCard/></Suspense>
     {signedOut ? <Notice><p>{L('投票に参加するか、既存のアカウントでログインしてください。', 'Take part in a poll or sign in to an existing account.')}</p><Link className="mr-4 inline-flex min-h-11 items-center font-semibold underline" href={`/${locale}/poll`}>{L('投票に参加する', 'View the poll')}</Link><Link className="inline-flex min-h-11 items-center font-semibold underline" href={`/${locale}/signin?next=${encodeURIComponent(`/${locale}/me/points`)}`}>{L('ログインしてポイントを見る', 'Sign in to view your points')}</Link></Notice>
       : error ? <Notice tone="error">{error}<button className="mt-2 block min-h-11 font-semibold underline" onClick={() => {setError(null); setAttempt(n => n + 1);}}>{L('再試行', 'Retry')}</button></Notice>
       : !data ? <p role="status">{L('読み込み中…', 'Loading points…')}</p> : <>
-        <div className="rounded-2xl border border-[#dee2d6] bg-white p-6">
+        <div className="cs-soft-card border border-[#f6dfe3] bg-gradient-to-b from-white to-[#fde8eb] p-6">
           <p>{L('残高', 'Balance')}</p><p className="my-3 text-4xl font-bold tabular-nums">{data.balance.toLocaleString(locale)} <span className="text-xl">pt</span></p>
           <p>{L('今日の獲得', 'Earned today')}: {data.todayEarned} / {data.dailyCap} pt</p>
           <p className="mt-2 text-sm">{L('1日の上限は日本時間の午前0時にリセットされます。', 'The daily limit resets at midnight Japan time.')}</p>

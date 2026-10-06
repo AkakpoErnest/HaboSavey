@@ -4,6 +4,9 @@ import {setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/lib/i18n/routing';
 import '../globals.css';
+import {Zen_Maru_Gothic} from 'next/font/google';
+// Rounded Japanese typeface for a softer, friendlier feel (self-hosted by next/font).
+const maru=Zen_Maru_Gothic({weight:['500','700','900'],subsets:['latin'],display:'swap',variable:'--font-maru'});
 const SITE=process.env.APP_URL||process.env.URL||'http://localhost:3000';
 export const metadata:Metadata={
   metadataBase:new URL(SITE),
@@ -14,4 +17,4 @@ export const metadata:Metadata={
   twitter:{card:'summary_large_image',title:'Citizen Sentiment | 気仙沼 市民の声',description:'Kesennuma city plans, your choice.',images:['/images/og-share.jpg']},
 };
 export function generateStaticParams(){return routing.locales.map(locale=>({locale}));}
-export default async function LocaleLayout({children,params}:{children:React.ReactNode;params:Promise<{locale:string}>}) {const {locale}=await params;if(!hasLocale(routing.locales,locale))notFound();setRequestLocale(locale);return <html lang={locale}><body><NextIntlClientProvider>{children}</NextIntlClientProvider></body></html>;}
+export default async function LocaleLayout({children,params}:{children:React.ReactNode;params:Promise<{locale:string}>}) {const {locale}=await params;if(!hasLocale(routing.locales,locale))notFound();setRequestLocale(locale);return <html lang={locale} className={maru.variable}><body><NextIntlClientProvider>{children}</NextIntlClientProvider></body></html>;}

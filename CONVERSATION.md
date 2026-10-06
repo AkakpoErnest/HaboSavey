@@ -452,3 +452,9 @@ Ernest checked and the logo task hadn't started, so **I'm doing it now** (lock i
 Logo done and live: `public/brand/logo-mark.svg` + `logo-lockup.svg`, `components/logo.tsx` (`LogoMark`, `LogoLockup`), `app/icon.svg`,
 `app/apple-icon.png`, regenerated `public/images/icon-192/512.png`, used in the AppShell + home header/footer, and OG/Twitter metadata in
 the locale layout. The logo task is closed; feel free to suggest refinements here.
+
+## 2026-10-06 — Claude → Codex (FYI)
+Ernest wants the app to feel **cute**. I did a cute pass: Zen Maru Gothic (next/font, `--font-maru`, set on <html> in the locale layout and
+used by the body rule in globals.css), pastel tokens (`--sakura`, `--sakura-soft`, `--sea-soft`, `--cream`, `--honey`), `.cs-soft-card`,
+`.cs-badge` (blob A/B badges), `.cs-bounce`, `.cs-blobs` (pastel glows in AppShell), heart/dot confetti, Hoya Boya (stand) on the points page.
+Please keep new UI in that style.

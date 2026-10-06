@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import Link from 'next/link';
-import {Check, Coins, Gamepad2, Maximize2, X} from 'lucide-react';
+import {Check, Coins, Gamepad2, Maximize2, Sparkles, X} from 'lucide-react';
 import type {PollChoice, PollDetailResponse, PollVoteResponse} from '@/lib/schemas';
 import {announcePoints, pointsName} from '@/components/points/feedback';
 import {Button} from '@/components/ui/button';
@@ -79,8 +79,8 @@ export function PollVote({id, via}: {id: string; via?: string}) {
           <div className="mt-4 flex justify-center"><HoyaBoya pose="cheer" height={170}/></div>
 
           {award ? (
-            <div className="cs-rise cs-d2 mx-auto mt-6 max-w-sm rounded-2xl border border-[#dee2d6] bg-white p-5">
-              <p className="flex items-center justify-center gap-2 text-2xl font-bold text-[#a8532f]"><Coins size={26}/>+{award.points} pt</p>
+            <div className="cs-rise cs-d2 cs-soft-card mx-auto mt-6 max-w-sm border border-[#f6dfe3] bg-gradient-to-b from-[#fff6e6] to-[#fde8eb] p-5">
+              <p className="flex items-center justify-center gap-2 text-3xl font-black text-[#c0566b]"><Coins size={28}/>+{award.points} pt</p>
               <p className="mt-1 text-base">{L(`${pName}をゲットしました！`, `You earned ${pName}!`)}</p>
               {award.nickname && (
                 <p className="mt-3 rounded-xl bg-[#f1f4ec] px-3 py-2 text-base">
@@ -97,7 +97,7 @@ export function PollVote({id, via}: {id: string; via?: string}) {
 
           <p className="mt-6 text-sm text-[#5b6b5c]">{L('あなたの選択：', 'Your choice: ')}<b>{data.myChoice!.toUpperCase()} · {label(data.myChoice!)}</b></p>
           {data.results && (
-            <div className="mx-auto mt-4 max-w-sm rounded-2xl border border-[#dee2d6] bg-white p-5 text-left">
+            <div className="cs-soft-card mx-auto mt-4 max-w-sm border border-[#e6e2d6] bg-white p-5 text-left">
               <ResultBars a={data.results.a} b={data.results.b} labels={{a: label('a'), b: label('b')}}/>
             </div>
           )}
@@ -123,8 +123,8 @@ export function PollVote({id, via}: {id: string; via?: string}) {
         {(poll.descriptionJa || poll.descriptionEn) && <p className="cs-rise cs-d2 mt-3 text-base leading-relaxed text-[#4d5d4f]">{pick(locale, poll.descriptionJa, poll.descriptionEn)}</p>}
 
         {data.votePoints > 0 && data.canVote && (
-          <p className="cs-rise cs-d2 mt-4 flex items-start gap-2 rounded-xl bg-[#fbeee2] p-3 text-base font-semibold text-[#7a3a1c]">
-            <Coins size={20} className="mt-0.5 shrink-0"/>
+          <p className="cs-rise cs-d2 mt-4 flex items-start gap-2 rounded-[22px] bg-gradient-to-r from-[#fde8eb] to-[#fff6e6] p-3.5 text-base font-bold text-[#8a2f45]">
+            <Sparkles size={20} className="mt-0.5 shrink-0"/>
             <span>{L(`投票すると${pName}が${data.votePoints}ptもらえます！`, `Vote and get ${data.votePoints} ${pName}!`)}</span>
           </p>
         )}
@@ -141,14 +141,14 @@ export function PollVote({id, via}: {id: string; via?: string}) {
             return (
               <div key={o.key} className={`cs-rise relative ${i ? 'cs-d4' : 'cs-d3'}`}>
                 <label
-                  className={`cs-lift cs-press block cursor-pointer overflow-hidden rounded-2xl border-2 bg-white transition-shadow has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-[#bd643c] ${isSel ? 'shadow-lg' : 'border-[#dee2d6]'}`}
+                  className={`cs-lift cs-press cs-soft-card block cursor-pointer overflow-hidden rounded-[28px] border-[3px] bg-white transition-shadow ${isSel ? 'cs-bounce' : ''} has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-[#bd643c] ${isSel ? 'shadow-lg' : 'border-[#dee2d6]'}`}
                   style={isSel ? {borderColor: OPTION_COLORS[o.key]} : undefined}
                 >
                   <input type="radio" name="choice" value={o.key} checked={isSel} onChange={() => setSelected(o.key)} className="sr-only"/>
                   <div className="relative aspect-[3/2] bg-[#e4e8dc]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={o.imageUrl} alt={pick(locale, o.labelJa, o.labelEn)} className="size-full object-cover" loading="eager"/>
-                    <span className="absolute left-3 top-3 grid size-11 place-items-center rounded-full text-xl font-black text-white shadow" style={{background: OPTION_COLORS[o.key]}}>{o.key.toUpperCase()}</span>
+                    <span className={`cs-badge absolute left-3 top-3 grid size-12 place-items-center text-xl font-black text-white shadow-md ${isSel ? 'cs-badge-wobble' : ''}`} style={{background: OPTION_COLORS[o.key]}}>{o.key.toUpperCase()}</span>
                     {isSel && <span className="cs-pop absolute right-3 top-3 grid size-11 place-items-center rounded-full bg-white text-[#214e43] shadow"><Check size={24} strokeWidth={3}/></span>}
                   </div>
                   <div className="flex min-h-16 items-center gap-3 p-4 pr-16">
@@ -158,7 +158,7 @@ export function PollVote({id, via}: {id: string; via?: string}) {
                     <span className="text-lg font-semibold leading-snug">{pick(locale, o.labelJa, o.labelEn)}</span>
                   </div>
                 </label>
-                <button type="button" onClick={() => setZoom(o.key)} className="absolute bottom-3 right-3 grid size-11 place-items-center rounded-full border border-[#dee2d6] bg-white text-[#213f36]" aria-label={L(`${o.key.toUpperCase()}を拡大`, `Enlarge ${o.key.toUpperCase()}`)}>
+                <button type="button" onClick={() => setZoom(o.key)} className="cs-press absolute bottom-3 right-3 grid size-11 place-items-center rounded-full border border-[#f0dfe2] bg-white text-[#213f36] shadow-sm" aria-label={L(`${o.key.toUpperCase()}を拡大`, `Enlarge ${o.key.toUpperCase()}`)}>
                   <Maximize2 size={18}/>
                 </button>
               </div>
@@ -195,7 +195,7 @@ export function PollVote({id, via}: {id: string; via?: string}) {
   );
 }
 
-const CONFETTI_COLORS = ['#214e43', '#a8532f', '#f0c17d', '#6f9fb0', '#cf704c', '#8aa58c'];
+const CONFETTI_COLORS = ['#f2a7b4', '#214e43', '#f4c47a', '#8fc9d1', '#cf704c', '#c0566b'];
 /** Small one-shot burst after a vote (hidden under reduced motion). */
 function Confetti() {
   return (
@@ -203,7 +203,8 @@ function Confetti() {
       {Array.from({length: 18}, (_, i) => {
         const angle = (i / 18) * Math.PI * 2;
         const dist = 90 + (i % 3) * 40;
-        return <i key={i} style={{'--x': `${Math.cos(angle) * dist}px`, '--y': `${Math.sin(angle) * dist - 40}px`, '--r': `${(i % 2 ? 1 : -1) * (180 + i * 20)}deg`, '--c': CONFETTI_COLORS[i % CONFETTI_COLORS.length]} as React.CSSProperties}/>;
+        const kind = i % 3 === 0 ? 'heart' : i % 3 === 1 ? 'dot' : '';
+        return <i key={i} className={kind} style={{'--x': `${Math.cos(angle) * dist}px`, '--y': `${Math.sin(angle) * dist - 40}px`, '--r': `${(i % 2 ? 1 : -1) * (180 + i * 20)}deg`, '--c': CONFETTI_COLORS[i % CONFETTI_COLORS.length]} as React.CSSProperties}>{kind === 'heart' ? '♥' : null}</i>;
       })}
     </div>
   );

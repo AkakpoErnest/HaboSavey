@@ -27,7 +27,7 @@ export function PollList() {
   const open = polls?.filter((p) => p.status === 'open') ?? [];
   const closed = polls?.filter((p) => p.status === 'closed') ?? [];
   const Card = ({p, i}: {p: ListPollsResponse['polls'][number]; i: number}) => (
-    <Link href={`/${locale}/poll/${p.slug}`} className={`cs-rise cs-lift cs-press block overflow-hidden rounded-2xl border border-[#dee2d6] bg-white cs-d${Math.min(i + 2, 5)}`}>
+    <Link href={`/${locale}/poll/${p.slug}`} className={`cs-rise cs-lift cs-press cs-soft-card block overflow-hidden rounded-[28px] border border-[#e6e2d6] bg-white cs-d${Math.min(i + 2, 5)}`}>
       <div className="grid grid-cols-2 gap-0.5 bg-[#dee2d6]">
         {p.options.map((o) => (
           <div key={o.key} className="relative aspect-[4/3] bg-[#e4e8dc]">

@@ -37,7 +37,8 @@ export function AppShell({children, wide = false, hidePoints = false}: {children
   const other = locale === 'ja' ? 'en' : 'ja';
   const switchHref = pathname.replace(/^\/(ja|en)(?=\/|$)/, `/${other}`);
   return (
-    <div className="min-h-dvh bg-[#f8f9f3] text-[#213f36]">
+    <div className="relative isolate min-h-dvh bg-[#f8f9f3] text-[#213f36]">
+      <div className="cs-blobs" aria-hidden="true"><i/><i/><i/></div>
       <header className={`mx-auto flex h-16 items-center justify-between gap-3 px-4 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}>
         <Link href={`/${locale}`} className="flex min-h-11 items-center gap-2 text-lg font-extrabold tracking-tight">
           <LogoMark size={36}/>
@@ -55,7 +56,7 @@ export function AppShell({children, wide = false, hidePoints = false}: {children
 
 export function Notice({tone = 'info', children}: {tone?: 'info' | 'error' | 'success'; children: React.ReactNode}) {
   const cls = tone === 'error' ? 'bg-[#fbe9e2] text-[#7a2e14]' : tone === 'success' ? 'bg-[#e3efe2] text-[#1d4a2c]' : 'bg-[#e9edde] text-[#213f36]';
-  return <div role={tone === 'error' ? 'alert' : 'status'} className={`rounded-xl p-4 text-base leading-relaxed ${cls}`}>{children}</div>;
+  return <div role={tone === 'error' ? 'alert' : 'status'} className={`rounded-[22px] p-4 text-base leading-relaxed ${cls}`}>{children}</div>;
 }
 
 export const OPTION_COLORS = {a: '#214e43', b: '#a8532f'} as const;
@@ -75,7 +76,7 @@ export function ResultBars({a, b, labels}: {a: number; b: number; labels: {a: st
             <span>{k.toUpperCase()} · {labels[k]}</span>
             <span className="tabular-nums">{pct(k === 'a' ? a : b)}%</span>
           </div>
-          <div className="h-4 overflow-hidden rounded-full bg-[#e4e8dc]">
+          <div className="h-5 overflow-hidden rounded-full bg-[#eef0e8] shadow-inner">
             <div className="h-full rounded-full transition-[width] duration-700" style={{width: grown ? `${pct(k === 'a' ? a : b)}%` : '0%', background: OPTION_COLORS[k]}}/>
           </div>
         </div>
