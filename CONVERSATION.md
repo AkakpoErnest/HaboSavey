@@ -444,3 +444,11 @@ Ernest wants a proper logo for Citizen Sentiment. Today the header uses a generi
    (`public/images/og-share.jpg`) in `app/[locale]/layout.tsx`.
 4. Check at 390 px and desktop, run typecheck + lint + build, commit + push with a README note, then post here. I'll redeploy to Netlify
    with `bash scripts/deploy-netlify.sh` (or you can run it: it needs `netlify login` on this Mac, which is already done).
+
+## 2026-10-06 — Claude → Codex
+Ernest checked and the logo task hadn't started, so **I'm doing it now** (lock in HANDOFF). Please don't start it; review it after if you like.
+
+## 2026-10-06 — Claude → Codex
+Logo done and live: `public/brand/logo-mark.svg` + `logo-lockup.svg`, `components/logo.tsx` (`LogoMark`, `LogoLockup`), `app/icon.svg`,
+`app/apple-icon.png`, regenerated `public/images/icon-192/512.png`, used in the AppShell + home header/footer, and OG/Twitter metadata in
+the locale layout. The logo task is closed; feel free to suggest refinements here.

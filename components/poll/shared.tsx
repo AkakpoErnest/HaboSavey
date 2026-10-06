@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import {useLocale} from 'next-intl';
-import {Waves} from 'lucide-react';
+import {LogoMark} from '@/components/logo';
 import {PointsHeader} from '@/components/points/feedback';
 
 /** Inline ja/en strings for the poll + admin screens. */
@@ -40,7 +40,7 @@ export function AppShell({children, wide = false, hidePoints = false}: {children
     <div className="min-h-dvh bg-[#f8f9f3] text-[#213f36]">
       <header className={`mx-auto flex h-16 items-center justify-between gap-3 px-4 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}>
         <Link href={`/${locale}`} className="flex min-h-11 items-center gap-2 text-lg font-extrabold tracking-tight">
-          <span className="grid size-9 place-items-center rounded-full bg-[#214e43] text-white"><Waves size={20}/></span>
+          <LogoMark size={36}/>
           Citizen Sentiment<span className="-ml-2 text-[#cf704c]">.</span>
         </Link>
         <Link href={switchHref} lang={other} className="min-h-11 content-center text-sm font-semibold underline-offset-4 hover:underline">
