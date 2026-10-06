@@ -44,6 +44,19 @@ export async function ideaFeedback(input: {
   const ja = input.locale === "ja";
   if (!process.env.OPENAI_API_KEY) return demoFeedback(input.presets, ja);
 
+  try {
+    return await openaiFeedback(input, ja);
+  } catch (err) {
+    // No credits, rate limit or outage: keep the flow working with clearly-labelled demo feedback.
+    console.error("[ai] OpenAI feedback failed, using demo feedback", (err as Error).message);
+    return demoFeedback(input.presets, ja);
+  }
+}
+
+async function openaiFeedback(
+  input: { original: Buffer; generated: Buffer; wish: string; presets: Preset[] },
+  ja: boolean,
+): Promise<IdeaFeedback> {
   const client = new OpenAI();
   const img = (b: Buffer) => ({ type: "input_image" as const, detail: "low" as const, image_url: `data:image/jpeg;base64,${b.toString("base64")}` });
   const res = await client.responses.create({
