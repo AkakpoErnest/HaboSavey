@@ -7,7 +7,7 @@ import {useEffect, useRef, useState, type ReactNode} from 'react';
  * fades in once playing. No video for prefers-reduced-motion or data-saver users (poster only), smaller file on phones,
  * paused while off-screen.
  */
-export function DuskBanner({children, priority = false, className = ''}: {children: ReactNode; aiLabel?: string; priority?: boolean; className?: string}) {
+export function DuskBanner({children, priority = false, rounded = true, className = ''}: {children: ReactNode; aiLabel?: string; priority?: boolean; rounded?: boolean; className?: string}) {
   const ref = useRef<HTMLVideoElement>(null);
   const [src, setSrc] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -31,7 +31,7 @@ export function DuskBanner({children, priority = false, className = ''}: {childr
   }, [src]);
 
   return (
-    <section className={`relative isolate overflow-hidden rounded-3xl bg-[#14302a] text-white ${className}`}>
+    <section className={`relative isolate overflow-hidden bg-[#14302a] text-white ${rounded ? 'rounded-3xl' : ''} ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/video/bay-dusk-poster.webp"
