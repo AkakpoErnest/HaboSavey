@@ -1,5 +1,5 @@
 // Draws the two demo poll images (A: today's seawall, B: green waterfront) into local storage.
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import sharp from "sharp";
 
 const W = 1200, H = 800;
@@ -38,8 +38,22 @@ ${[250, 540, 820, 1080].map(lantern).join("")}
 <g fill="#e46b4a">${[90, 380, 660, 940].map((x) => `<circle cx="${x}" cy="628" r="6"/><circle cx="${x + 16}" cy="632" r="5" fill="#f2c14e"/>`).join("")}</g>
 </svg>`;
 
-const dir = ".data/storage/poll-images/seed";
-await mkdir(dir, { recursive: true });
-await sharp(Buffer.from(A)).jpeg({ quality: 88 }).toFile(`${dir}/naiwan-a.jpg`);
-await sharp(Buffer.from(B)).jpeg({ quality: 88 }).toFile(`${dir}/naiwan-b.jpg`);
-console.log("seed images written to", dir);
+const images = {
+  "naiwan-a.jpg": await sharp(Buffer.from(A)).jpeg({ quality: 88 }).toBuffer(),
+  "naiwan-b.jpg": await sharp(Buffer.from(B)).jpeg({ quality: 88 }).toBuffer(),
+};
+
+if (process.env.STORAGE_DRIVER === "netlify-blobs") {
+  // Hosted on Netlify: upload into the site's blob store (needs NETLIFY_SITE_ID + NETLIFY_AUTH_TOKEN).
+  const { getStore } = await import("@netlify/blobs");
+  const store = getStore({ name: "citizen-sentiment", siteID: process.env.NETLIFY_SITE_ID, token: process.env.NETLIFY_AUTH_TOKEN });
+  for (const [name, bytes] of Object.entries(images)) {
+    await store.set(`poll-images/seed/${name}`, new Uint8Array(bytes).buffer, { metadata: { contentType: "image/jpeg" } });
+  }
+  console.log("seed images uploaded to Netlify Blobs");
+} else {
+  const dir = ".data/storage/poll-images/seed";
+  await mkdir(dir, { recursive: true });
+  for (const [name, bytes] of Object.entries(images)) await writeFile(`${dir}/${name}`, bytes);
+  console.log("seed images written to", dir);
+}

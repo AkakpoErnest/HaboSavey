@@ -57,6 +57,11 @@ Checks: `npm run typecheck`, `npm run lint`, `npm run build`; contracts: `cd con
 In `.env.local` set `APP_URL` to the tunnel address, `LOCAL_MODE=1` and a secret `LOCAL_STAFF_EMAILS`. The address changes
 whenever the tunnel restarts (so reprint QR codes), and the Mac must stay awake.
 
+**Netlify (recommended for the demo):** `netlify.toml` is included. On Netlify the app runs in local mode with
+**Netlify DB** (Postgres, via `NETLIFY_DATABASE_URL`) and **Netlify Blobs** for photos (`STORAGE_DRIVER=netlify-blobs`). Site env vars:
+`LOCAL_MODE=1`, `STORAGE_DRIVER=netlify-blobs`, `LOCAL_STAFF_EMAILS`, `POINTS_OPEN_EARNING=1` (demo), and 32+ char
+`VOTER_KEY_SECRET`, `GAME_LINK_SECRET`, `DEV_STORAGE_SECRET`, `ANON_SESSION_SECRET`. `APP_URL` defaults to Netlify's `URL`.
+
 **Production:** create a Supabase project (Tokyo region), fill `.env.local` from `.env.example`, run `npm run db:migrate`,
 set `VOTER_KEY_SECRET`, `GAME_LINK_SECRET` and `DEV_STORAGE_SECRET` (32+ random chars each; production refuses to sign without them), then `supabase/triggers.sql`, `rls.sql` and `storage.sql` (plus `seed.sql` for demo data), and deploy to Vercel. Set `APP_URL`
 to the public URL, because printed QR codes encode it, and set `GAME_ORIGINS` to the game's origin(s). Never commit credentials.

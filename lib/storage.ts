@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { getStore } from "@netlify/blobs";
 import path from "node:path";
-import { isLocalMode } from "@/lib/env";
+import { appUrl, isLocalMode } from "@/lib/env";
 import { requireSecret } from "@/lib/secrets";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -12,9 +13,42 @@ const SIGNED_URL_TTL = 60 * 60; // 1 hour
 /** User-owned objects live under "<userId>/…" so ownership checks are a prefix test. */
 export const ownsPath = (userId: string, p: string) => p.startsWith(`${userId}/`) && !p.includes("..");
 
-// ── Local mode: files under .data/storage, served by /api/dev-storage ────────────────────────────
+// ── Local mode storage: Netlify Blobs (STORAGE_DRIVER=netlify-blobs) or files under .data/storage.
+//    Either way, objects are served by /api/dev-storage with HMAC-signed URLs. ──────────────────────
 const LOCAL_ROOT = path.join(process.cwd(), ".data", "storage");
-const appUrl = () => process.env.APP_URL ?? "http://localhost:3000";
+const blobsEnabled = () => process.env.STORAGE_DRIVER === "netlify-blobs";
+
+function blobStore() {
+  // On Netlify the site context is automatic; scripts outside Netlify pass NETLIFY_SITE_ID + NETLIFY_AUTH_TOKEN.
+  const siteID = process.env.NETLIFY_SITE_ID;
+  const token = process.env.NETLIFY_AUTH_TOKEN;
+  return getStore({ name: "citizen-sentiment", consistency: "strong", ...(siteID && token ? { siteID, token } : {}) });
+}
+
+/** Reads a local-mode object (null if missing). */
+export async function readLocalObject(bucket: Bucket, p: string): Promise<Buffer | null> {
+  if (blobsEnabled()) {
+    const data = await blobStore().get(`${bucket}/${p}`, { type: "arrayBuffer" });
+    return data ? Buffer.from(data) : null;
+  }
+  try {
+    return await readFile(localFilePath(bucket, p));
+  } catch {
+    return null;
+  }
+}
+
+/** Writes a local-mode object. */
+export async function writeLocalObject(bucket: Bucket, p: string, bytes: Buffer, contentType: string) {
+  if (blobsEnabled()) {
+    localFilePath(bucket, p); // validates the path
+    await blobStore().set(`${bucket}/${p}`, new Uint8Array(bytes).buffer as ArrayBuffer, { metadata: { contentType } });
+    return;
+  }
+  const file = localFilePath(bucket, p);
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, bytes);
+}
 const devSecret = () => requireSecret("DEV_STORAGE_SECRET", "habosavey-local-dev");
 
 export function localFilePath(bucket: Bucket, p: string): string {
@@ -74,7 +108,11 @@ export async function createUploadUrl(bucket: Bucket, p: string): Promise<{ uplo
 }
 
 export async function download(bucket: Bucket, p: string): Promise<Buffer> {
-  if (isLocalMode()) return readFile(localFilePath(bucket, p));
+  if (isLocalMode()) {
+    const bytes = await readLocalObject(bucket, p);
+    if (!bytes) throw new Error(`Missing ${bucket}/${p}`);
+    return bytes;
+  }
   const { data, error } = await supabaseAdmin().storage.from(bucket).download(p);
   if (error || !data) throw error ?? new Error(`Missing ${bucket}/${p}`);
   return Buffer.from(await data.arrayBuffer());
@@ -82,9 +120,7 @@ export async function download(bucket: Bucket, p: string): Promise<Buffer> {
 
 export async function upload(bucket: Bucket, p: string, bytes: Buffer, contentType: string) {
   if (isLocalMode()) {
-    const file = localFilePath(bucket, p);
-    await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, bytes);
+    await writeLocalObject(bucket, p, bytes, contentType);
     return;
   }
   const { error } = await supabaseAdmin().storage.from(bucket).upload(p, bytes, { contentType, upsert: true });

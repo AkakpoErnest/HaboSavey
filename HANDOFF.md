@@ -1,6 +1,6 @@
 # HANDOFF — status board (Citizen Sentiment, formerly HaboSavey)
 
-**Lock:** none (Claude released)
+**Lock:** Claude — Netlify deploy: lib/storage.ts, app/api/dev-storage, netlify.toml, package.json, scripts — since 2026-10-06
 _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing shared files, clear it when done.)_
 
 ## Claude (backend: app/api, lib/db, lib/ai, lib/auth, lib/privacy, lib/schemas, drizzle, supabase)

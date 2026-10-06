@@ -5,3 +5,9 @@
  */
 export const isLocalMode = () =>
   !process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.NODE_ENV !== "production" || process.env.LOCAL_MODE === "1");
+
+/** Public base URL of the app: APP_URL, else Netlify's URL / DEPLOY_PRIME_URL, else localhost. QR codes encode it. */
+export const appUrl = () => process.env.APP_URL || process.env.URL || process.env.DEPLOY_PRIME_URL || "http://localhost:3000";
+
+/** Postgres connection string: DATABASE_URL, or the one Netlify DB injects. */
+export const databaseUrl = () => process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL || process.env.NETLIFY_DATABASE_URL_UNPOOLED;
