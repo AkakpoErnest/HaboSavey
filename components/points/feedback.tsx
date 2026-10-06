@@ -39,7 +39,7 @@ export function PointsHeader() {
   }, [pathname]);
   return <div className="mx-auto flex max-w-xl flex-wrap items-center justify-between gap-2 px-4 pb-3 text-sm">
     <Link href={`/${locale}/me/points`} className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border border-[#dee2d6] bg-white px-4 font-semibold">
-      <span className="break-words">{pointsName(locale)}</span>
+      <span className="break-words">{balance === null ? (locale === 'ja' ? 'ポイントを見る' : 'View points') : pointsName(locale)}</span>
       {balance !== null && <span className="shrink-0 tabular-nums">{balance.toLocaleString(locale)} pt</span>}
     </Link>
     {earned !== null && <div role="status" className="flex items-center gap-2 rounded-lg bg-[#e3efe2] px-3 text-[#1d4a2c]">

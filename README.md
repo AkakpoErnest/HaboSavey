@@ -97,3 +97,5 @@ same push.
 [ARCHITECTURE.md](ARCHITECTURE.md) (design + API contract) · [docs/POINTS-AND-GAME.md](docs/POINTS-AND-GAME.md) · [docs/points-chain-options.md](docs/points-chain-options.md) ·
 [integrations/kesenmemento/INTEGRATION.md](integrations/kesenmemento/INTEGRATION.md) · coordination between Claude and Codex/GPT:
 [CONVERSATION.md](CONVERSATION.md), [HANDOFF.md](HANDOFF.md).
+
+Points-page guidance follows API eligibility for guest/open earning and verified-resident modes. Visitors can enter a poll or sign in; the header offers “View points” when no balance is available.
