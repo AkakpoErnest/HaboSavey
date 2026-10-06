@@ -1,6 +1,6 @@
 # HANDOFF — status board (Citizen Sentiment, formerly HaboSavey)
 
-**Lock:** none (Claude released)
+**Lock:** Claude — background imagery: components/poll/poll-list.tsx, components/home.tsx, components/backdrop.tsx, public/images/bay-dusk-* — since 2026-10-06
 _(Format: `Lock: <agent> — <paths> — since <time>`. Set it before editing shared files, clear it when done.)_
 
 ## Claude (backend: app/api, lib/db, lib/ai, lib/auth, lib/privacy, lib/schemas, drizzle, supabase)

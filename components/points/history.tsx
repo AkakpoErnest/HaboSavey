@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {PointsResponse, type PointsReason} from '@/lib/schemas/points';
 import {AppShell, ApiFetchError, Notice, api, useL} from '@/components/poll/shared';
 import {pointsName} from './feedback';
+import {ConnectedGames} from './connected-games';
 
 export function PointsHistory() {
   const {locale, L} = useL();
@@ -44,6 +45,7 @@ export function PointsHistory() {
           <p className="mt-4 text-sm leading-relaxed">{L('住民確認済みの方が対象です。投票・回答・承認は各企画につき1回、QRは各コードにつき1日1回。1日の上限により獲得数が少なくなることがあります。', 'For verified residents. Polls, responses and approvals earn once per activity; QR check-ins once per code per day. The daily cap may reduce an award.')}</p></section>
         <section><h2 className="text-xl font-bold">{L('最近の履歴（最大100件）', 'Recent history (up to 100 entries)')}</h2>
           {data.history.length === 0 ? <p>{L('まだ履歴がありません。', 'No points activity yet.')}</p> : <ul className="divide-y divide-[#dee2d6]">{data.history.map((entry, i) => <li key={`${entry.refId}-${entry.createdAt}-${i}`} className="flex justify-between gap-4 py-4"><div><p className="font-semibold">{reasons[entry.reason]}</p><time dateTime={entry.createdAt} className="text-sm">{new Intl.DateTimeFormat(locale, {dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Tokyo'}).format(new Date(entry.createdAt))} JST</time></div><span className="shrink-0 font-bold tabular-nums">{entry.amount > 0 ? '+' : ''}{entry.amount} pt</span></li>)}</ul>}</section>
+        <ConnectedGames/>
       </>}
     <section id="resident-verification" className="rounded-xl bg-[#e9edde] p-5"><h2 className="text-xl font-bold">{L('住民確認について', 'Resident verification')}</h2><p className="text-base leading-relaxed">{L('市役所などで案内される住民確認用QRコードを読み取り、ログインして確認を完了してください。一般の投票用QRコードとは異なります。', 'Scan a resident-verification QR code provided through city hall or a participating event, sign in, and complete the verification step. Ordinary poll QR codes do not verify residency.')}</p></section>
   </section></AppShell>;
