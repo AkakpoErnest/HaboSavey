@@ -1,0 +1,1 @@
+ALTER TABLE "guest_points" ADD COLUMN "claimed_at" timestamp with time zone;

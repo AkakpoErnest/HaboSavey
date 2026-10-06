@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "anonymous" boolean DEFAULT false NOT NULL;

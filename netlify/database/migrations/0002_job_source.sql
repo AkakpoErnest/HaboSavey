@@ -1,0 +1,2 @@
+ALTER TABLE "generation_jobs" ADD COLUMN "source_bucket" text DEFAULT 'originals' NOT NULL;--> statement-breakpoint
+ALTER TABLE "generation_jobs" ADD COLUMN "raw_prompt" boolean DEFAULT false NOT NULL;

@@ -9,3 +9,6 @@ out/
 contracts/lib/
 contracts/out/
 contracts/cache/
+
+# Local Netlify folder
+.netlify

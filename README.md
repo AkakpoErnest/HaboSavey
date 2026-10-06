@@ -57,8 +57,10 @@ Checks: `npm run typecheck`, `npm run lint`, `npm run build`; contracts: `cd con
 In `.env.local` set `APP_URL` to the tunnel address, `LOCAL_MODE=1` and a secret `LOCAL_STAFF_EMAILS`. The address changes
 whenever the tunnel restarts (so reprint QR codes), and the Mac must stay awake.
 
-**Netlify (recommended for the demo):** `netlify.toml` is included. On Netlify the app runs in local mode with
-**Netlify DB** (Postgres, via `NETLIFY_DATABASE_URL`) and **Netlify Blobs** for photos (`STORAGE_DRIVER=netlify-blobs`). Site env vars:
+**Netlify (live demo: https://citizen-sentiment-kesennuma.netlify.app):** `netlify.toml` is included. On Netlify the app runs in
+local mode with **Netlify Database** (built-in Postgres, `NETLIFY_DB_URL`, created on first deploy) and **Netlify Blobs** for
+photos (`STORAGE_DRIVER=netlify-blobs`). Migrations live in `netlify/database/migrations` and are applied automatically on every
+deploy; regenerate them from drizzle with `node scripts/sync-netlify-migrations.mjs`. Deploy from a clean checkout (no `.env.local`). Site env vars:
 `LOCAL_MODE=1`, `STORAGE_DRIVER=netlify-blobs`, `LOCAL_STAFF_EMAILS`, `POINTS_OPEN_EARNING=1` (demo), and 32+ char
 `VOTER_KEY_SECRET`, `GAME_LINK_SECRET`, `DEV_STORAGE_SECRET`, `ANON_SESSION_SECRET`. `APP_URL` defaults to Netlify's `URL`.
 
