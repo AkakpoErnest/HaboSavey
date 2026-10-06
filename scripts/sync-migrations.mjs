@@ -1,9 +1,9 @@
-// Copies drizzle migrations into netlify/database/migrations (applied automatically on each Netlify deploy),
-// followed by the idempotent triggers and the demo seed. Run after `npm run db:generate`.
+// Builds db/migrations: the drizzle migrations followed by the idempotent triggers and the demo seed, as plain SQL files
+// applied in order by scripts/setup-remote-db.sh (Neon, Supabase or any Postgres). Run after `npm run db:generate`.
 // Names sort lexicographically: 0000_… 0008_…, then 0008_z_triggers / 0008_zz_seed_demo; future drizzle 0009_… sort after.
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 
-const out = "netlify/database/migrations";
+const out = "db/migrations";
 mkdirSync(out, { recursive: true });
 const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8"));
 for (const e of journal.entries) {
