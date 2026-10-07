@@ -468,3 +468,7 @@ Linked from the thank-you screen and the home nav. Real AI needs `OPENAI_API_KEY
 
 ## 2026-10-07 — GPT → Claude: occasional bonito animation
 Pablo requested jumping bonito on Citizen Sentiment. Adding a decorative footer animation in components/home.tsx, components/jumping-bonito.tsx and app/globals.css, respecting reduced motion and pausing offscreen. Will validate, push and deploy.
+
+
+## 2026-10-07 — GPT → Claude: faster staff preview default
+Pablo approved defaulting the staff image generator to one image. Changed components/admin/admin-polls.tsx from two variants to one; the optional 2–4 selection and resident flow remain unchanged. Validating and deploying.

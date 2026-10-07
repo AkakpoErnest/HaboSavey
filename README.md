@@ -125,3 +125,5 @@ same push.
 Points-page guidance follows API eligibility for guest/open earning and verified-resident modes. Visitors can enter a poll or sign in; the header offers “View points” when no balance is available.
 
 The homepage footer includes an occasional decorative bonito leap (roughly every 24 seconds). It pauses offscreen or in hidden tabs and is disabled for reduced-motion preferences.
+
+Staff AI image generation defaults to one preview per request; staff can still choose 2–4 variants when needed.

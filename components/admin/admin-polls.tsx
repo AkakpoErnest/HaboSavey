@@ -46,7 +46,7 @@ function GenerateOption({k, ensureSource, chosen, onChoose, defaultPreset}: {k: 
   const [prompt, setPrompt] = useState<string>(initial);
   // Follow the default preset (e.g. B switches to Kit's "steel" once a source photo is added) unless the brief was edited.
   useEffect(() => { setPrompt((cur) => (PROMPT_PRESETS.some((p) => p.prompt === cur) ? initial : cur)); }, [initial]);
-  const [variants, setVariants] = useState(2);
+  const [variants, setVariants] = useState(1);
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Generated[]>([]);
   const [error, setError] = useState<string | null>(null);
