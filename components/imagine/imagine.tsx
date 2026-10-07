@@ -19,7 +19,7 @@ const PRESETS: {key: Preset; emoji: string; ja: string; en: string}[] = [
 type Step = 'start' | 'generating' | 'pick' | 'done';
 type Result = {path: string; url: string};
 
-/** "Kesennuma in 5 years": photo → AI visions (points) → OpenAI feedback → submit to the town (staff review → A/B poll). */
+/** "Kesennuma in 5 years": photo → AI visions (points) → OpenAI feedback → submit to the town (immediately public A/B poll). */
 export function Imagine() {
   const {locale, L} = useL();
   const [info, setInfo] = useState<ImagineInfoResponse | null>(null);
@@ -29,6 +29,7 @@ export function Imagine() {
   const [wish, setWish] = useState('');
   const [presets, setPresets] = useState<Preset[]>([]);
   const [step, setStep] = useState<Step>('start');
+  const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [chosen, setChosen] = useState<Result | null>(null);
@@ -80,8 +81,8 @@ export function Imagine() {
     if (!chosen || !jobId) return;
     setBusy(true); setError(null);
     try {
-      await api<ImagineSubmitResponse>('/api/imagine/submit', {method: 'POST', json: {jobId, path: chosen.path, wish, placeName: place, feedbackSummary: feedback?.summary ?? ''}});
-      setStep('done'); window.scrollTo({top: 0, behavior: 'smooth'});
+      const published = await api<ImagineSubmitResponse>('/api/imagine/submit', {method: 'POST', json: {jobId, path: chosen.path, wish, placeName: place, feedbackSummary: feedback?.summary ?? ''}});
+      setPublishedSlug(published.pollSlug); setStep('done'); window.scrollTo({top: 0, behavior: 'smooth'});
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
 
@@ -91,9 +92,9 @@ export function Imagine() {
         <section className="pt-8 text-center">
           <h1 className="text-[1.9rem] font-black leading-snug">{L('提出しました！\nありがとう！', 'Submitted!\nThank you!')}</h1>
           <div className="mt-4 flex justify-center"><HoyaBoya pose="cheer" height={160}/></div>
-          <p className="mx-auto mt-5 max-w-sm text-base leading-relaxed text-[#4d5d4f]">{L('市の担当者が確認したあと、「いま」と「5年後」のA/B投票として公開されます。', 'After city staff review it, it becomes an A/B poll: "today" vs "in 5 years".')}</p>
+          <p className="mx-auto mt-5 max-w-sm text-base leading-relaxed text-[#4d5d4f]">{L('「いま」と「5年後」のA/B投票として公開しました。誰でも投票できます。', 'Your idea is now public as an A/B poll: "today" vs "in 5 years". Anyone can vote.')}</p>
           <div className="mx-auto mt-6 grid max-w-sm gap-3">
-            <Button asChild className="w-full text-base"><Link href={`/${locale}/poll`}>{L('いまの投票に参加する', 'Vote in the current poll')}</Link></Button>
+            <Button asChild className="w-full text-base"><Link href={`/${locale}/poll/${publishedSlug}`}>{L('提案を見る・共有する', 'View and share your proposal')}</Link></Button>
             <Button variant="outline" className="w-full text-base" onClick={() => { setStep('start'); setFile(null); setPreview(null); setWish(''); setPresets([]); setResults([]); setChosen(null); setFeedback(null); }}>{L('もうひとつ想像する', 'Imagine another place')}</Button>
           </div>
         </section>
@@ -197,7 +198,7 @@ export function Imagine() {
             )}
             {error && <Notice tone="error">{error}</Notice>}
             {chosen && <Button className="cs-press w-full text-base" disabled={busy} onClick={submit}><Send size={18}/>{busy ? L('送信中…', 'Sending…') : L('このアイデアをまちに提案する', 'Propose this idea to the town')}</Button>}
-            <p className="text-sm text-[#5b6b5c]">{L('提案は市の担当者が確認してから公開されます。人の顔や車のナンバーが写った写真は公開されません。', 'Proposals are reviewed by city staff before going public. Photos showing faces or licence plates are not published.')}</p>
+            <p className="text-sm text-[#5b6b5c]">{L('送信するとすぐに公開され、誰でも投票できます。人の顔や車のナンバーが写っていない写真を選んでください。', 'Submitting publishes your proposal immediately for everyone to vote on. Choose a photo without people’s faces or licence plates.')}</p>
           </section>
         )}
       </div>

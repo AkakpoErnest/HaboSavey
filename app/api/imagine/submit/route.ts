@@ -7,8 +7,7 @@ import { getDb, schema } from "@/lib/db";
 import { download, upload } from "@/lib/storage";
 
 /**
- * Submits a 5-year vision to the town: creates a DRAFT A/B poll (A = today's photo, B = the vision) that staff review in
- * /admin/polls and can open for voting. Nothing is public until staff approve it.
+ * Submits a 5-year vision to the town: creates an OPEN A/B poll (A = today's photo, B = the vision) that is immediately available for public voting.
  */
 export const POST = route(async (req) => {
   const user = await requireUser();
@@ -39,7 +38,7 @@ export const POST = route(async (req) => {
       optionBImagePath: b,
       optionBLabelJa: "5年後のアイデア（AIイメージ）",
       optionBLabelEn: "In 5 years (AI concept)",
-      status: "draft",
+      status: "open",
       resultsVisibility: "after_vote",
       createdBy: user.id,
     })
