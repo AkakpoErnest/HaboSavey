@@ -68,10 +68,13 @@ Rendering details:
 ## Plan (Claude)
 1. **Generate**: both renders from the one source photo with OpenAI `gpt-image-2` (needs API credits on the account; the key is already
    on Netlify), or in ChatGPT if Kit prefers. Do 2–3 tries each and pick the pair with matching framing and light.
-2. **App**: add both prompts as presets ("Traditional wood" / "Modern steel") in the staff poll form's AI panel (`components/admin/poll-prompt.ts`),
+2. ✅ **App (done 2026-10-07)**: added both prompts as presets ("Traditional wood" / "Modern steel") in the staff poll form's AI panel (`components/admin/poll-prompt.ts`),
    with an option to generate **A from the photo too**, so staff can recreate this kind of A/B themselves.
 3. **Demo poll**: replace the `promenade` poll's A/B images and labels with the two renders, AI-labelled on both. Upload to Netlify Blobs,
    update Neon, and clear test votes before the presentation (with Ernest's OK).
 4. **Verify**: phone-size check of `/ja/poll` and `/ja/poll/result`, then commit, push and update the README.
 
-**Blocked on:** (a) the Naiwan source photo, (b) OpenAI credits (or renders made in ChatGPT and dropped into the repo).
+**Blocked on:** (a) the Naiwan source photo, (b) Kit's OpenAI API key with credits (replaces the current key on Netlify).
+
+**How staff do it (once the key is in):** `/ja/admin/polls` → New poll → "Source photo for AI" → open "Generate A with AI" (preset: Kit A wood)
+and "Generate B with AI" (preset: Kit B steel) → pick the best of each → labels → tick "Show this poll at /poll" → Create.

@@ -6,7 +6,7 @@ import type {CreatePollInput, CreateUploadResponse, GenerateResponse, Generation
 import {Button} from '@/components/ui/button';
 import {cn} from '@/lib/utils';
 import {AppShell, Notice, OPTION_COLORS, api, pick, useL} from '@/components/poll/shared';
-import {DEFAULT_OPTION_B_PROMPT} from './poll-prompt';
+import {PROMPT_PRESETS} from './poll-prompt';
 import {QrCard} from './qr-card';
 import {StaffGate} from './staff-gate';
 
@@ -39,10 +39,13 @@ function ImagePick({k, file, onFile, previewUrl}: {k: 'a' | 'b'; file: File | nu
 
 type Generated = {path: string; url: string};
 
-/** Staff: render option B from image A with an image model, using an editable brief. */
-function GenerateB({ensureA, chosen, onChoose}: {ensureA: () => Promise<string>; chosen: string | null; onChoose: (g: Generated) => void}) {
-  const {L} = useL();
-  const [prompt, setPrompt] = useState(DEFAULT_OPTION_B_PROMPT);
+/** Staff: render option A or B from a source photo with an image model, using a preset or edited brief. */
+function GenerateOption({k, ensureSource, chosen, onChoose, defaultPreset}: {k: 'a' | 'b'; ensureSource: () => Promise<string>; chosen: string | null; onChoose: (g: Generated) => void; defaultPreset: 'wood' | 'steel' | 'classic'}) {
+  const {locale, L} = useL();
+  const initial = PROMPT_PRESETS.find((p) => p.id === defaultPreset)!.prompt;
+  const [prompt, setPrompt] = useState<string>(initial);
+  // Follow the default preset (e.g. B switches to Kit's "steel" once a source photo is added) unless the brief was edited.
+  useEffect(() => { setPrompt((cur) => (PROMPT_PRESETS.some((p) => p.prompt === cur) ? initial : cur)); }, [initial]);
   const [variants, setVariants] = useState(2);
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Generated[]>([]);
@@ -51,7 +54,7 @@ function GenerateB({ensureA, chosen, onChoose}: {ensureA: () => Promise<string>;
   async function run() {
     setBusy(true); setError(null); setResults([]);
     try {
-      const originalPath = await ensureA();
+      const originalPath = await ensureSource();
       const {jobId} = await api<GenerateResponse>('/api/generate', {method: 'POST', json: {originalPath, prompt, variants, sourceBucket: 'poll-images', rawPrompt: true}});
       const started = Date.now();
       for (;;) {
@@ -66,7 +69,15 @@ function GenerateB({ensureA, chosen, onChoose}: {ensureA: () => Promise<string>;
 
   return (
     <details className="rounded-xl border border-[#dee2d6] bg-white p-4 open:space-y-3">
-      <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-base font-semibold"><Sparkles size={18}/>{L('Aの写真からBをAIで作成', 'Generate B from photo A with AI')}</summary>
+      <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-base font-semibold"><Sparkles size={18}/>{L(`案${k.toUpperCase()}をAIで作成`, `Generate ${k.toUpperCase()} with AI`)}</summary>
+      <div className="flex flex-wrap gap-2" role="group" aria-label={L('プロンプトのひな形', 'Prompt presets')}>
+        {PROMPT_PRESETS.map((p) => (
+          <button type="button" key={p.id} onClick={() => setPrompt(p.prompt)} aria-pressed={prompt === p.prompt}
+            className={`cs-press min-h-11 rounded-full border-2 px-3 text-sm font-bold ${prompt === p.prompt ? 'border-[#214e43] bg-[#214e43] text-white' : 'border-[#e6d9dc] bg-white'}`}>
+            {locale === 'en' ? p.labelEn : p.labelJa}
+          </button>
+        ))}
+      </div>
       <p className="text-sm leading-relaxed text-[#4d5d4f]">{L('Aに実際の写真を選び、作りたい案を説明してください（英語推奨）。結果は「AIイメージ」と表示されます。', 'Choose a real photo as A and describe the proposal (English works best). Results are labelled "AI image".')}</p>
       <label className="block space-y-1 text-base font-semibold">{L('AIへの指示', 'Prompt')}
         <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} maxLength={4000} rows={12} className={cn(input, 'min-h-72 py-3 font-normal leading-relaxed')}/>
@@ -76,7 +87,7 @@ function GenerateB({ensureA, chosen, onChoose}: {ensureA: () => Promise<string>;
           <select value={variants} onChange={(e) => setVariants(Number(e.target.value))} className="min-h-11 rounded-lg border border-[#bfcbb7] bg-white px-3 text-base">{[1, 2, 3, 4].map((n) => <option key={n}>{n}</option>)}</select>
         </label>
         <Button type="button" onClick={run} disabled={busy || !prompt.trim()}><Sparkles size={18}/>{busy ? L('作成中…（1〜2分）', 'Generating… (1–2 min)') : L('Bを作成', 'Generate B')}</Button>
-        {prompt !== DEFAULT_OPTION_B_PROMPT && <button type="button" className="min-h-11 text-sm underline" onClick={() => setPrompt(DEFAULT_OPTION_B_PROMPT)}>{L('元に戻す', 'Reset prompt')}</button>}
+        
       </div>
       {error && <Notice tone="error">{error}</Notice>}
       {results.length > 0 && (
@@ -100,6 +111,21 @@ function CreatePollForm({onCreated}: {onCreated: (p: Poll, qr: QrCodeInfo | null
   const [files, setFiles] = useState<{a: File | null; b: File | null}>({a: null, b: null});
   const [aPath, setAPath] = useState<string | null>(null);
   const [generatedB, setGeneratedB] = useState<Generated | null>(null);
+  const [generatedA, setGeneratedA] = useState<Generated | null>(null);
+  // Optional source photo for AI: both A and B can be rendered from it (Kit's A/B brief). Without it, B is rendered from photo A.
+  const [sourceFile, setSourceFile] = useState<File | null>(null);
+  const [sourcePath, setSourcePath] = useState<string | null>(null);
+  async function ensureSource() {
+    if (!sourceFile) return ensureA();
+    if (sourcePath) return sourcePath;
+    const p = await uploadPollImage(sourceFile);
+    setSourcePath(p);
+    return p;
+  }
+  async function ensureSourceStrict() {
+    if (!sourceFile) throw new Error(L('Aを作るには、上の「AI用の元写真」を選んでください。', 'To generate A, choose a source photo above first.'));
+    return ensureSource();
+  }
   async function ensureA() {
     if (!files.a) throw new Error(L('先にAの写真を選んでください。', 'Choose photo A first.'));
     if (aPath) return aPath;
@@ -109,7 +135,7 @@ function CreatePollForm({onCreated}: {onCreated: (p: Poll, qr: QrCodeInfo | null
   }
   const [openNow, setOpenNow] = useState(true);
   const [slug, setSlug] = useState('');
-  const [featured, setFeatured] = useState(true);
+  const [featured, setFeatured] = useState(false);
   const [resultsVisibility, setRV] = useState<CreatePollInput['resultsVisibility']>('after_vote');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -117,10 +143,10 @@ function CreatePollForm({onCreated}: {onCreated: (p: Poll, qr: QrCodeInfo | null
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!files.a || (!files.b && !generatedB)) { setError(L('AとBの両方の画像を選んでください。', 'Please choose both images.')); return; }
+    if ((!files.a && !generatedA) || (!files.b && !generatedB)) { setError(L('AとBの両方の画像を選んでください。', 'Please choose both images.')); return; }
     setBusy(true); setError(null);
     try {
-      const [a, b] = await Promise.all([ensureA(), generatedB ? generatedB.path : uploadPollImage(files.b!)]);
+      const [a, b] = await Promise.all([generatedA ? generatedA.path : ensureA(), generatedB ? generatedB.path : uploadPollImage(files.b!)]);
       const body: CreatePollInput = {
         titleJa: f.titleJa, titleEn: f.titleEn || undefined, questionJa: f.questionJa, questionEn: f.questionEn || undefined,
         descriptionJa: f.descriptionJa,
@@ -144,12 +170,19 @@ function CreatePollForm({onCreated}: {onCreated: (p: Poll, qr: QrCodeInfo | null
         <label className="space-y-1 text-base font-semibold">{L('質問（英語）', 'Question (English)')}<input className={input} value={f.questionEn} onChange={set('questionEn')} placeholder="Which design do you prefer?"/></label>
       </div>
       <label className="block space-y-1 text-base font-semibold">{L('説明（日本語）', 'Description (Japanese)')}<textarea className={cn(input, 'min-h-24 py-3')} value={f.descriptionJa} onChange={set('descriptionJa')}/></label>
+      <div className="space-y-2 rounded-2xl border border-dashed border-[#bfcbb7] bg-white p-4">
+        <p className="text-base font-semibold">{L('AI用の元写真（任意）', 'Source photo for AI (optional)')}</p>
+        <p className="text-sm text-[#5b6b5c]">{L('ここに実際の写真を入れると、AとBの両方を同じ写真からAIで作れます（例：Kitの「木」と「鋼」の遊歩道）。', 'Add a real photo here to render both A and B from the same view (e.g. Kit\'s wood vs steel promenades).')}</p>
+        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { setSourceFile(e.target.files?.[0] ?? null); setSourcePath(null); }} className="block w-full text-base"/>
+      </div>
       <div className="grid gap-5 sm:grid-cols-2">
         {(['a', 'b'] as const).map((k) => (
           <div key={k} className="space-y-3">
-            <ImagePick k={k} file={files[k]} previewUrl={k === 'b' ? generatedB?.url : undefined}
-              onFile={(file) => { setFiles({...files, [k]: file}); if (k === 'a') setAPath(null); else setGeneratedB(null); }}/>
-            {k === 'b' && <GenerateB ensureA={ensureA} chosen={generatedB?.path ?? null} onChoose={setGeneratedB}/>}
+            <ImagePick k={k} file={files[k]} previewUrl={k === 'b' ? generatedB?.url : generatedA?.url}
+              onFile={(file) => { setFiles({...files, [k]: file}); if (k === 'a') { setAPath(null); setGeneratedA(null); } else setGeneratedB(null); }}/>
+            {k === 'a'
+              ? sourceFile && <GenerateOption k="a" defaultPreset="wood" ensureSource={ensureSourceStrict} chosen={generatedA?.path ?? null} onChoose={setGeneratedA}/>
+              : <GenerateOption k="b" defaultPreset={sourceFile ? 'steel' : 'classic'} ensureSource={ensureSource} chosen={generatedB?.path ?? null} onChoose={setGeneratedB}/>}
             <label className="block space-y-1 text-base font-semibold">{L(`案${k.toUpperCase()}の名前（日本語）*`, `Option ${k.toUpperCase()} label (Japanese) *`)}<input className={input} required value={f[k === 'a' ? 'aJa' : 'bJa']} onChange={set(k === 'a' ? 'aJa' : 'bJa')}/></label>
             <label className="block space-y-1 text-base font-semibold">{L(`案${k.toUpperCase()}の名前（英語）`, `Option ${k.toUpperCase()} label (English)`)}<input className={input} value={f[k === 'a' ? 'aEn' : 'bEn']} onChange={set(k === 'a' ? 'aEn' : 'bEn')}/></label>
           </div>
