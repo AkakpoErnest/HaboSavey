@@ -38,9 +38,58 @@ ${[250, 540, 820, 1080].map(lantern).join("")}
 <g fill="#e46b4a">${[90, 380, 660, 940].map((x) => `<circle cx="${x}" cy="628" r="6"/><circle cx="${x + 16}" cy="632" r="5" fill="#f2c14e"/>`).join("")}</g>
 </svg>`;
 
+// ── Neighbourhood park: today (bare lawn, fence) vs idea (trees, playground, benches, flowers) ──
+const parkSky = `<rect width="${W}" height="${H}" fill="#dbe9e3"/><circle cx="1020" cy="140" r="70" fill="#f4d9a0"/>
+<path d="M0 360 Q300 250 620 330 T1200 300 V520 H0Z" fill="#9db69a"/>`;
+const PARK_A = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${parkSky}
+<rect y="470" width="${W}" height="330" fill="#b9c79a"/>
+<g stroke="#8d8a7e" stroke-width="6">${Array.from({ length: 13 }, (_, i) => `<line x1="${60 + i * 90}" y1="520" x2="${60 + i * 90}" y2="610"/>`).join("")}<line x1="40" y1="540" x2="1160" y2="540"/><line x1="40" y1="585" x2="1160" y2="585"/></g>
+<rect x="520" y="430" width="160" height="60" fill="#c9c3b3"/><rect x="560" y="400" width="80" height="34" fill="#a49e8f"/>
+</svg>`;
+const kid = (x) => `<g><circle cx="${x}" cy="610" r="9" fill="#5a4a3a"/><rect x="${x - 7}" y="619" width="14" height="24" rx="5" fill="#e46b4a"/></g>`;
+const PARK_B = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${parkSky}
+<rect y="470" width="${W}" height="330" fill="#9fc27f"/>
+<path d="M0 700 Q600 610 1200 700 V800 H0Z" fill="#e3d2ad"/>
+${[90, 300, 930, 1120].map((x) => tree(x, 1.1)).join("").replaceAll("560", "540").replaceAll("525", "505")}
+<g><rect x="470" y="520" width="12" height="120" fill="#c0566b"/><rect x="620" y="520" width="12" height="120" fill="#c0566b"/><rect x="465" y="512" width="172" height="12" rx="6" fill="#d97a8c"/>
+<line x1="510" y1="524" x2="510" y2="600" stroke="#5a4a3a" stroke-width="3"/><line x1="540" y1="524" x2="540" y2="600" stroke="#5a4a3a" stroke-width="3"/><rect x="502" y="598" width="46" height="8" rx="3" fill="#f4c47a"/>
+<path d="M660 640 L760 560 L780 560 L780 640Z" fill="#8fc9d1"/><rect x="760" y="540" width="40" height="22" fill="#f4c47a"/></g>
+${[210, 820].map((x) => bench(x).replaceAll('y="650"', 'y="690"').replaceAll('y="626"', 'y="666"').replaceAll('y="664"', 'y="704"')).join("")}
+${kid(560)}${kid(700)}
+<g>${Array.from({ length: 22 }, (_, i) => `<circle cx="${40 + i * 53}" cy="${730 + (i % 3) * 18}" r="7" fill="${["#f2a7b4", "#f4c47a", "#ffffff"][i % 3]}"/>`).join("")}</g>
+</svg>`;
+
+// ── Town-centre street: today (wide grey road, cars) vs idea (trees, wide pavement, benches, lanterns) ──
+const shops = (fill1, fill2) => `<rect x="0" y="230" width="300" height="260" fill="${fill1}"/><rect x="300" y="190" width="260" height="300" fill="${fill2}"/>
+<rect x="640" y="210" width="280" height="280" fill="${fill1}"/><rect x="920" y="250" width="280" height="240" fill="${fill2}"/>
+<g fill="#f6efe0">${[40, 160, 340, 450, 680, 800, 960, 1080].map((x) => `<rect x="${x}" y="300" width="70" height="60"/>`).join("")}</g>`;
+const car = (x, c) => `<g><rect x="${x}" y="600" width="170" height="54" rx="16" fill="${c}"/><rect x="${x + 30}" y="572" width="100" height="40" rx="12" fill="${c}"/><circle cx="${x + 40}" cy="660" r="16" fill="#333"/><circle cx="${x + 130}" cy="660" r="16" fill="#333"/></g>`;
+const STREET_A = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="#e3e6e8"/>
+${shops("#cfc8bd", "#b9b2a6")}
+<rect y="490" width="${W}" height="40" fill="#c9c6bf"/><rect y="530" width="${W}" height="270" fill="#7d7f80"/>
+<g fill="#f4f1e6">${Array.from({ length: 8 }, (_, i) => `<rect x="${40 + i * 150}" y="660" width="80" height="10"/>`).join("")}</g>
+${car(120, "#5d7fa3")}${car(560, "#c9c9c9")}${car(900, "#a05252")}
+<rect x="600" y="420" width="8" height="110" fill="#666"/><rect x="580" y="410" width="48" height="14" fill="#666"/>
+</svg>`;
+const STREET_B = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="#e7efe9"/>
+${shops("#e9c9a5", "#d79b7c")}
+<g>${[150, 450, 760, 1050].map((x) => `<path d="M${x - 55} 230 h110 l-15 40 h-80z" fill="#c0566b" opacity=".85"/>`).join("")}</g>
+<rect y="490" width="${W}" height="210" fill="#e3d2ad"/>
+<g stroke="#d1bd94" stroke-width="3">${Array.from({ length: 24 }, (_, i) => `<line x1="${i * 55}" y1="490" x2="${i * 55}" y2="700"/>`).join("")}</g>
+<rect y="700" width="${W}" height="100" fill="#8e9192"/>
+${[90, 400, 720, 1040].map((x) => tree(x, 1)).join("").replaceAll("560", "520").replaceAll("525", "485").replaceAll("550", "510").replaceAll("548", "508")}
+${[220, 560, 870].map((x) => bench(x).replaceAll('y="650"', 'y="620"').replaceAll('y="626"', 'y="596"').replaceAll('y="664"', 'y="634"')).join("")}
+${[300, 640, 980].map((x) => lantern(x).replaceAll('y="470"', 'y="500"').replaceAll('cy="466"', 'cy="496"')).join("")}
+<g>${[330, 600, 950].map((x) => `<g><circle cx="${x}" cy="560" r="10" fill="#5a4a3a"/><rect x="${x - 8}" y="570" width="16" height="34" rx="6" fill="${["#214e43", "#e46b4a", "#5d7fa3"][(x / 10) % 3 | 0]}"/></g>`).join("")}</g>
+</svg>`;
+
 const images = {
   "naiwan-a.jpg": await sharp(Buffer.from(A)).jpeg({ quality: 88 }).toBuffer(),
   "naiwan-b.jpg": await sharp(Buffer.from(B)).jpeg({ quality: 88 }).toBuffer(),
+  "park-a.jpg": await sharp(Buffer.from(PARK_A)).jpeg({ quality: 88 }).toBuffer(),
+  "park-b.jpg": await sharp(Buffer.from(PARK_B)).jpeg({ quality: 88 }).toBuffer(),
+  "street-a.jpg": await sharp(Buffer.from(STREET_A)).jpeg({ quality: 88 }).toBuffer(),
+  "street-b.jpg": await sharp(Buffer.from(STREET_B)).jpeg({ quality: 88 }).toBuffer(),
 };
 
 if (process.env.STORAGE_DRIVER === "netlify-blobs") {
