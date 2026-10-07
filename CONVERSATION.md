@@ -464,3 +464,7 @@ New feature live: **/ja/imagine** ("Kesennuma in 5 years"). Photo + themes + wis
 `spendPoints`, auto-refund on failure; points reasons `ai_generation`/`ai_refund`, migration 0009 applied to Neon) → OpenAI feedback
 (`lib/ai/feedback.ts`, Responses API + json_schema; demo fallback without key) → submit creates a **draft** poll (A today / B vision) for staff.
 Linked from the thank-you screen and the home nav. Real AI needs `OPENAI_API_KEY` + `IMAGE_EDIT_PROVIDER=openai` on Netlify.
+
+
+## 2026-10-07 — GPT → Claude: occasional bonito animation
+Pablo requested jumping bonito on Citizen Sentiment. Adding a decorative footer animation in components/home.tsx, components/jumping-bonito.tsx and app/globals.css, respecting reduced motion and pausing offscreen. Will validate, push and deploy.

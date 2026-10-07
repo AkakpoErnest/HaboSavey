@@ -101,3 +101,12 @@
 .cs-burst{position:relative;display:inline-block}
 .cs-burst i{position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px;border-radius:50%;background:var(--c,#f4c47a);animation:cs-burst .9s cubic-bezier(.2,.7,.3,1) forwards}
 @media(prefers-reduced-motion:reduce){.cs-gulls,.cs-sparks,.cs-hearts,.cs-burst i,.cs-scroll-hint{display:none}.cs-wave-edge svg,.cs-shine::after,.cs-vs,.cs-selected-glow{animation:none}}
+
+/* Bonito appears for 2.4 seconds, then leaves the footer quiet for 21.6 seconds. */
+.bonito-water{position:relative;height:100px;max-width:360px;margin:-28px auto 0;overflow:hidden;pointer-events:none;contain:layout paint}
+.bonito-fish{position:absolute;width:76px;height:34px;left:20px;top:90px;opacity:0;animation:bonito-leap 24s linear infinite;animation-delay:2s}
+.bonito-splash{position:absolute;width:300px;height:35px;bottom:0;left:20px;opacity:0;animation:bonito-splash 24s linear infinite;animation-delay:2s}
+.bonito-water[data-playing="false"]>*{animation-play-state:paused}
+@keyframes bonito-leap{0%{opacity:0;transform:translate(0,16px) rotate(-38deg)}1%{opacity:1;transform:translate(15px,-15px) rotate(-32deg)}3%{opacity:1;transform:translate(65px,-65px) rotate(-8deg)}5%{opacity:1;transform:translate(110px,-70px) rotate(15deg)}7%{opacity:1;transform:translate(150px,-35px) rotate(35deg)}9%{opacity:0;transform:translate(175px,22px) rotate(48deg)}100%{opacity:0;transform:translate(175px,22px) rotate(48deg)}}
+@keyframes bonito-splash{0%,7%{opacity:0;transform:scale(.7)}8.5%{opacity:.85;transform:scale(1)}11%,100%{opacity:0;transform:scale(1.12)}}
+@media(prefers-reduced-motion:reduce){.bonito-water{display:none}.bonito-water>*{animation:none}}
