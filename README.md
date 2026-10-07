@@ -7,6 +7,16 @@ Drizzle + Postgres (Supabase), next-intl (ja/en).
 
 Citizen Sentiment is a simple app that enables Kesennuma city officials to gather the preferences of citizens about a future project. It’s primarily visual where images, in A/B format, are distributed in multiple media, including web, app, and paper. Each distribution includes a QR code link. Citizens can scan the QR code and land on a page in the Citizen Sentiment app. They make a choice between image A and B and submit their preference. The city can then gauge the sentiment of the populace when making design decisions.
 
+## Points in Silesh's game
+
+Points earned here (はまらいんやポイント, for voting, surveys, approved ideas and on-site QR check-ins) will be **usable in
+[KesenMemento](https://github.com/ss251/kesenmemento-v2)**, Silesh's 3D game of real Kesennuma (GitHub: ss251). Players connect
+their Citizen Sentiment account (guest or email) inside the game, and their points and stamps go with them. In the game, points will be
+spent on collectibles such as a stamp rally of Kesennuma's real places and ship-story badges, and playing earns more points back. The
+connection kit is ready in [`integrations/kesenmemento/`](integrations/kesenmemento/INTEGRATION.md), and the planned on-chain version
+(Ethereum L2) is in [`contracts/`](contracts/) and [`docs/POINTS-AND-GAME.md`](docs/POINTS-AND-GAME.md). Status: built on our side; it
+goes live in the game once Silesh adds the kit.
+
 ## Features
 
 | Area | What it does | Where |
@@ -91,7 +101,7 @@ to the public URL, because printed QR codes encode it, and set `GAME_ORIGINS` to
 - Network: **Ethereum**. Recommended pilot (see [docs/points-chain-options.md](docs/points-chain-options.md)): **Base Sepolia** (an Ethereum L2 testnet) with **Privy** email wallets and app-paid gas, keeping the Postgres ledger as the source of truth. Mainnet is a later decision after measured costs.
 - "Hoya Boya points" as a name, and Hoya Boya in the game or collectibles, need **Kesennuma City's approval**; the default name is はまらいんやポイント.
 - On-chain points need a legal check (Japan's Payment Services Act) before mainnet.
-- Integration with KesenMemento is pending with its author (ss251).
+- Points in the game: integration kit ready; waiting for Silesh (ss251) to add it to KesenMemento.
 
 ## Agent tooling (Neon)
 
