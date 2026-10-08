@@ -137,3 +137,5 @@ The homepage footer includes an occasional decorative bonito leap (roughly every
 Staff AI image generation defaults to one preview per request; staff can still choose 2–4 variants when needed.
 
 Anyone, including guests, can propose through `/ja/imagine` or `/en/imagine` using the existing points flow. New submissions open immediately for public voting and return a shareable poll link. Non-staff visitors to `/admin/polls` are redirected to this public flow; poll administration remains restricted.
+
+Bonito Jump is available at `/ja/play` and `/en/play`: touch/Space jumping, platforms, bonito collectibles, pause/resume and a 60-second round. Guest rounds use the server points API (20 seconds and 3 bonito qualify for 2 points, capped at 10/day). Uses an original bonito character pending Hoya Boya animation approval.
