@@ -8,8 +8,8 @@ import { signUrls } from "@/lib/storage";
 import { outputBucket } from "@/lib/ai/run-job";
 import { IMAGINE_COST, refundPoints } from "@/lib/points";
 
-/** A job still unfinished after this was killed by the host (function time limit): fail it and refund. */
-const STALE_MS = 3 * 60_000;
+/** Jobs run in a background function (limit 15 min); one still unfinished after that was killed: fail it and refund. */
+const STALE_MS = 16 * 60_000;
 
 export const GET = route<Params<"jobId">>(async (_req, { params }) => {
   const { jobId } = await params;

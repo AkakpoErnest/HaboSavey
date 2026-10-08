@@ -16,6 +16,7 @@ const PRESETS: {key: Preset; emoji: string; ja: string; en: string}[] = [
   {key: 'festival', emoji: '🏮', ja: 'お祭り', en: 'Festival'},
 ];
 
+const PENDING = 'cs_imagine_pending';
 type Step = 'start' | 'generating' | 'pick' | 'done';
 
 /** Playful lines that rotate while the AI paints (takes 30 s – 2 min). */
@@ -78,16 +79,35 @@ export function Imagine() {
       if (!put.ok) throw new Error(L('写真のアップロードに失敗しました。', 'Photo upload failed.'));
       const g = await api<ImagineGenerateResponse>('/api/imagine/generate', {method: 'POST', json: {originalPath: up.path, wish, presets}});
       setJobId(g.jobId); setStep('generating'); setInfo((i) => i && {...i, balance: g.balance});
-      const started = Date.now();
-      for (;;) {
-        await new Promise((r) => setTimeout(r, 2000));
-        const job = await api<GenerationJobResponse>(`/api/generate/${g.jobId}`);
-        if (job.status === 'done') { setResults(job.results); setStep('pick'); break; }
-        if (job.status === 'failed') { await loadInfo(); throw new Error((job.error ?? '') + ' ' + L('ポイントは返金されました。', 'Your points were refunded.')); }
-        if (Date.now() - started > 4 * 60_000) throw new Error(L('時間がかかっています。少し待ってからもう一度お試しください。', 'This is taking long. Please try again shortly.'));
-      }
+      try { localStorage.setItem(PENDING, JSON.stringify({jobId: g.jobId, wish, presets, place, at: Date.now()})); } catch {}
+      await waitForJob(g.jobId);
     } catch (e) { setError((e as Error).message); setStep('start'); } finally { setBusy(false); }
   }
+
+  /** Polls a job until it finishes. The job id is kept in localStorage, so a reload (or a phone locking) resumes here. */
+  async function waitForJob(id: string) {
+    const started = Date.now();
+    try {
+      for (;;) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const job = await api<GenerationJobResponse>(`/api/generate/${id}`);
+        if (job.status === 'done') { setResults(job.results); setStep('pick'); break; }
+        if (job.status === 'failed') { await loadInfo(); throw new Error((job.error ?? '') + ' ' + L('ポイントは返金されました。', 'Your points were refunded.')); }
+        if (Date.now() - started > 16 * 60_000) throw new Error(L('時間がかかっています。少し待ってからもう一度お試しください。', 'This is taking long. Please try again shortly.'));
+      }
+    } finally { try { localStorage.removeItem(PENDING); } catch {} }
+  }
+
+  // Resume a generation that was still running when the page was closed or reloaded.
+  useEffect(() => {
+    let saved: {jobId: string; wish: string; presets: Preset[]; place: string; at: number} | null = null;
+    try { saved = JSON.parse(localStorage.getItem(PENDING) ?? 'null'); } catch {}
+    if (!saved?.jobId) return;
+    if (Date.now() - saved.at > 20 * 60_000) { try { localStorage.removeItem(PENDING); } catch {} return; }
+    setJobId(saved.jobId); setWish(saved.wish ?? ''); setPresets(saved.presets ?? []); setPlace(saved.place ?? ''); setStep('generating');
+    waitForJob(saved.jobId).catch((e) => { setError((e as Error).message); setStep('start'); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function choose(r: Result) {
     setChosen(r); setFeedback(null); setError(null);
