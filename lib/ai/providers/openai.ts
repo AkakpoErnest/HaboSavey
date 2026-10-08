@@ -16,6 +16,8 @@ export function openaiEditor(): ImageEditor {
         n: 1,
         size: "auto",
         output_format: "jpeg",
+        // "medium" is several times faster than "high"/"auto" and keeps jobs inside Netlify's function time limit.
+        quality: (process.env.OPENAI_IMAGE_QUALITY ?? "medium") as "low" | "medium" | "high" | "auto",
       });
       const b64 = res.data?.[0]?.b64_json;
       if (!b64) throw new Error("OpenAI: no image returned");

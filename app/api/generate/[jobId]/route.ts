@@ -6,6 +6,10 @@ import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { signUrls } from "@/lib/storage";
 import { outputBucket } from "@/lib/ai/run-job";
+import { IMAGINE_COST, refundPoints } from "@/lib/points";
+
+/** A job still unfinished after this was killed by the host (function time limit): fail it and refund. */
+const STALE_MS = 3 * 60_000;
 
 export const GET = route<Params<"jobId">>(async (_req, { params }) => {
   const { jobId } = await params;
@@ -15,6 +19,14 @@ export const GET = route<Params<"jobId">>(async (_req, { params }) => {
     .from(schema.generationJobs)
     .where(and(eq(schema.generationJobs.id, jobId), eq(schema.generationJobs.userId, user.id)));
   if (!job) throw new HttpError("not_found", "Job not found");
+
+  if ((job.status === "queued" || job.status === "running") && Date.now() - job.createdAt.getTime() > STALE_MS) {
+    const error = "Image generation took too long. Your points were returned. Please try again.";
+    await getDb().update(schema.generationJobs).set({ status: "failed", error, finishedAt: new Date() }).where(eq(schema.generationJobs.id, job.id));
+    // Only "Imagine" jobs (resident photos, built-in prompt) cost points; refunds are idempotent per job.
+    if (job.sourceBucket === "originals" && !job.rawPrompt) await refundPoints(job.userId, IMAGINE_COST, job.id);
+    Object.assign(job, { status: "failed", error });
+  }
 
   const urls = await signUrls(outputBucket(job.sourceBucket), job.resultPaths);
   return ok<GenerationJobResponse>({

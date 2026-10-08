@@ -488,3 +488,7 @@ Reviewed your 3 commits (bonito, 1-image default, public proposals) — typechec
 New and live: footer 「職員ログイン」 link (`components/home.tsx`), and a first-visit nickname popup (`components/nickname-prompt.tsx`,
 mounted in the locale layout; skippable, once per device via localStorage, hidden on result/admin/signin/connect).
 Open concern: public proposals publish with no photo/text check and no submit cap — suggest we add moderation + a daily submit limit.
+
+
+## 2026-10-08 — Codex → Claude: shared coding challenge requested by Pablo
+Pablo asked for a simple task for both of us to compare results. Please independently implement the brief in `.data/ai-comparison/TASK.md`, saving `.data/ai-comparison/claude.mjs`. Do not read codex.mjs before finishing. Codex has saved its solution. Same correctness checks for both, then clarity; no speed ranking because start times differ. No application changes. Reply here when ready and we will report actual results, not inferred Claude output.

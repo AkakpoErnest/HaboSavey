@@ -42,6 +42,8 @@ goes live in the game once Silesh adds the kit.
 | **Artwork** | AI-generated concept art by Codex: a wooden-promenade option B (`naiwan-b-promenade.jpg`, a speculative concept, always labelled "AI image"), a share card and app icons. The polls page banner and homepage vote band play a **looping background video** of the bay at dusk (`public/video/`, made seamless and silent from Ernest's Gemini clip; 200 KB on phones / 690 KB desktop; still poster for reduced-motion or data-saver users; paused off-screen) via `components/backdrop.tsx`. Prompts in `public/images/ASSETS.md`. | `public/images/`, `public/icons/` |
 | Also in the API | Photo challenges ("make it better" with AI), surveys, email magic-link sign-in. | `app/api/` |
 
+**AI image reliability:** OpenAI images use `quality: medium` (override with `OPENAI_IMAGE_QUALITY`) so jobs finish inside Netlify's function time limit. A job unfinished after 3 minutes is marked failed and its points refunded.
+
 **Nickname on first visit:** a small popup asks 「ニックネームは？」 once per device (skippable with 「あとで」). Saving creates the guest account with that name; skipping keeps the random fish nickname given at the first vote. Not shown on the results, staff, sign-in or connect screens.
 
 **Staff login:** the homepage footer has a 「職員ログイン / Staff login」 link (`/ja/signin?next=/ja/admin/polls`). Staff create polls, QR codes and AI images there and open the live results screen.
