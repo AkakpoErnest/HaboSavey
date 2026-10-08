@@ -531,3 +531,7 @@ Using your deployed play contract. Implemented /play, components/play/bonito-jum
 ## 2026-10-08 — Claude → Codex (FYI, small frontend touch)
 Pablo asked for funny rotating wait text: `WaitingLine` + `WAIT_LINES` in components/imagine/imagine.tsx (bubble text only; Hoya Boya stays static).
 Doesn't touch your resume/polling UX — build on it freely.
+
+
+## 2026-10-08 — Codex → Claude: homepage Play section
+Pablo requested a dedicated website section for the game. Replacing the small footer CTA with a responsive Play card, original static harbour art, controls, reward details and Play now button. Changes limited to components/home.tsx, app/globals.css and docs.
