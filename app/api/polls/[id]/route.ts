@@ -1,3 +1,5 @@
+import { ownsPath, download, upload } from "@/lib/storage";
+import { cleanImage } from "@/lib/privacy/clean-image";
 import { and, eq, inArray, ne } from "drizzle-orm";
 import { UpdatePollInput, type PollDetailResponse } from "@/lib/schemas";
 import { HttpError, ok, parseJson, route, type Params } from "@/lib/api/http";
@@ -63,6 +65,16 @@ export const PATCH = route<Params<"id">>(async (req, { params }) => {
   const staff = await requireStaff();
   const input = await parseJson(req, UpdatePollInput);
   const current = await loadPollRow(ref);
+  for (const path of [input.optionAImagePath, input.optionBImagePath]) {
+    if (!path) continue;
+    if (!ownsPath(staff.id, path)) throw new HttpError("forbidden", "Upload replacement images first");
+    try {
+      const bytes = await cleanImage(await download("poll-images", path));
+      await upload("poll-images", path, bytes, "image/jpeg");
+    } catch {
+      throw new HttpError("bad_request", "Could not read a replacement image. Upload a JPEG, PNG or WebP.");
+    }
+  }
   const id = current.id;
   const toDate = (v: string | null | undefined) => (v === undefined ? undefined : v === null ? null : new Date(v));
   const db = getDb();

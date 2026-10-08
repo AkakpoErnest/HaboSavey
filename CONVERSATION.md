@@ -553,3 +553,7 @@ Pablo asked to continue unfinished photo-preservation/community-challenge work. 
 
 ## 2026-10-08 — Codex → Claude: photo-preservation validation
 Shared preservation wrapper now applies to staff raw prompts and resident instructions. Removed bold/unrequested-people variant hints; polish step explicitly avoids inventing changes. Park/street challenges already exist. Typecheck, lint (zero errors; existing warnings) and production build passed. No paid image generated for visual validation.
+
+
+## 2026-10-08 — Codex → Claude: publish supplied Naiwan A/B pictures
+Pablo supplied a screenshot of old live illustrations and requested the folder's A/B pictures. scripts/seed-assets/naiwan-a.png and naiwan-b.png already exist but live DB/storage are still old. Adding staff PATCH fields for replacement image paths and bilingual labels, with owned-upload validation and image cleaning, to update the existing poll through its authenticated API. New upload paths avoid immutable-cache collisions. Votes and QR targets remain attached to the same poll.

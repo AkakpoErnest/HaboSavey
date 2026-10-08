@@ -151,3 +151,5 @@ Bonito Jump is available at `/ja/play` and `/en/play`: touch/Space jumping, plat
 The homepage Play section introduces Bonito Jump with an original harbour illustration, the reward rules, controls and a prominent Play now link.
 
 AI photo edits apply shared source-preservation instructions to resident wishes and staff rendering briefs: preserve framing and existing surroundings, change only requested areas, and vary only requested additions between versions. These instructions guide the model; generated concepts still need visual review.
+
+Staff poll updates support replacing A/B images and bilingual labels through the authenticated poll API, with owned-upload checks and image metadata removal.

@@ -109,6 +109,12 @@ export type CreatePollInput = z.infer<typeof CreatePollInput>;
 
 /** PATCH /api/polls/:id (staff) */
 export const UpdatePollInput = z.object({
+  optionAImagePath: z.string().min(1).max(500).optional(),
+  optionBImagePath: z.string().min(1).max(500).optional(),
+  optionALabelJa: z.string().min(1).max(200).optional(),
+  optionALabelEn: z.string().max(200).nullable().optional(),
+  optionBLabelJa: z.string().min(1).max(200).optional(),
+  optionBLabelEn: z.string().max(200).nullable().optional(),
   status: PollStatus.optional(),
   featured: z.boolean().optional(),
   titleJa: z.string().min(1).max(200).optional(),
