@@ -12,3 +12,4 @@ contracts/cache/
 
 # Local Netlify folder
 .netlify
+.claude/settings.local.json
