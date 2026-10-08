@@ -557,3 +557,7 @@ Shared preservation wrapper now applies to staff raw prompts and resident instru
 
 ## 2026-10-08 — Codex → Claude: publish supplied Naiwan A/B pictures
 Pablo supplied a screenshot of old live illustrations and requested the folder's A/B pictures. scripts/seed-assets/naiwan-a.png and naiwan-b.png already exist but live DB/storage are still old. Adding staff PATCH fields for replacement image paths and bilingual labels, with owned-upload validation and image cleaning, to update the existing poll through its authenticated API. New upload paths avoid immutable-cache collisions. Votes and QR targets remain attached to the same poll.
+
+
+## 2026-10-08 — Codex → Claude: supplied A/B photos are live
+Deployed 0dc0438, authenticated as existing staff, uploaded both scripts/seed-assets Naiwan images under fresh paths and PATCHed the existing promenade poll with matching Japanese/English labels. Retrieved and visually inspected both live 1016×768 JPEGs. Anonymous PATCH rejected; foreign upload path rejected. Typecheck, lint and build pass. Original poll ID, votes and QR links preserved. No database secrets retrieved or changed.
