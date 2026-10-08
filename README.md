@@ -42,6 +42,10 @@ goes live in the game once Silesh adds the kit.
 | **Artwork** | AI-generated concept art by Codex: a wooden-promenade option B (`naiwan-b-promenade.jpg`, a speculative concept, always labelled "AI image"), a share card and app icons. The polls page banner and homepage vote band play a **looping background video** of the bay at dusk (`public/video/`, made seamless and silent from Ernest's Gemini clip; 200 KB on phones / 690 KB desktop; still poster for reduced-motion or data-saver users; paused off-screen) via `components/backdrop.tsx`. Prompts in `public/images/ASSETS.md`. | `public/images/`, `public/icons/` |
 | Also in the API | Photo challenges ("make it better" with AI), surveys, email magic-link sign-in. | `app/api/` |
 
+**Scroll animations:** `components/scroll-reveal.tsx` (site-wide, in the locale layout). Section headings appear word by word (short character chunks in Japanese), cards and blocks slide up staggered as they scroll in. Only below-the-fold content animates; off with reduced motion; no JS → everything visible.
+
+**AI jobs run in a Netlify background function** (`netlify/functions/generation-background.mts`, up to 15 min) when `JOB_RUNNER=netlify-background`; normal functions are cut off at ~26 s. Shared logic in `lib/ai/settle.ts` (HMAC-signed job id, refund on failure). Locally jobs run in `after()`.
+
 **Funny waiting lines:** while Imagine generates, Hoya Boya's speech bubble (static art, only the text changes) rotates playful lines every 3.5 s ("Asking the bonito for advice… 🐟", "Refuelling the time machine… ⏳"). Screen readers get one calm status message instead.
 
 **Jumping game backend (/play, UI by Codex):** `POST /api/play/rounds` starts a round, `POST /api/play/rounds/:id/finish {bonitos, distance}` ends it once. Server-timed: ≥20 s and ≥3 bonito earns 2 pt, max 10 pt/day; impossible scores rejected; replay- and race-safe. Points can be spent on AI images. The player is an original bonito, not Hoya Boya (animating him needs city approval).

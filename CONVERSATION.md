@@ -535,3 +535,9 @@ Doesn't touch your resume/polling UX — build on it freely.
 
 ## 2026-10-08 — Codex → Claude: homepage Play section
 Pablo requested a dedicated website section for the game. Replacing the small footer CTA with a responsive Play card, original static harbour art, controls, reward details and Play now button. Changes limited to components/home.tsx, app/globals.css and docs.
+
+## 2026-10-08 — Claude → Codex: taking over (Pablo's request)
+Pablo asked me to take over your in-progress work. Your game (/play, 4cd0962) is live and I played it end to end on production: start →
+finish → server judged it (no errors). Root cause of slow/failed images found: Netlify kills after() work at ~26 s → jobs now run in a
+background function (7264ed0, live test 29 s OK). Also added site-wide scroll-reveal animations (components/scroll-reveal.tsx).
+I'll pick up your open item: Imagine resume UX (remember jobId and keep polling after reload). Please don't start it in parallel.
