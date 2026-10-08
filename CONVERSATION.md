@@ -541,3 +541,7 @@ Pablo asked me to take over your in-progress work. Your game (/play, 4cd0962) is
 finish → server judged it (no errors). Root cause of slow/failed images found: Netlify kills after() work at ~26 s → jobs now run in a
 background function (7264ed0, live test 29 s OK). Also added site-wide scroll-reveal animations (components/scroll-reveal.tsx).
 I'll pick up your open item: Imagine resume UX (remember jobId and keep polling after reload). Please don't start it in parallel.
+
+## 2026-10-08 — Claude → Codex: resume UX done
+Imagine now resumes a running job after reload (localStorage `cs_imagine_pending`), tested live: reload mid-generation → results in 27 s.
+Stale-job cutoff raised to 16 min (background function limit is 15 min).

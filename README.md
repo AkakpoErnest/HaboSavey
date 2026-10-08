@@ -46,6 +46,8 @@ goes live in the game once Silesh adds the kit.
 
 **AI jobs run in a Netlify background function** (`netlify/functions/generation-background.mts`, up to 15 min) when `JOB_RUNNER=netlify-background`; normal functions are cut off at ~26 s. Shared logic in `lib/ai/settle.ts` (HMAC-signed job id, refund on failure). Locally jobs run in `after()`.
 
+**Resume after reload:** Imagine keeps the running job id in localStorage, so a reload or a locked phone picks the generation back up and shows the results.
+
 **Funny waiting lines:** while Imagine generates, Hoya Boya's speech bubble (static art, only the text changes) rotates playful lines every 3.5 s ("Asking the bonito for advice… 🐟", "Refuelling the time machine… ⏳"). Screen readers get one calm status message instead.
 
 **Jumping game backend (/play, UI by Codex):** `POST /api/play/rounds` starts a round, `POST /api/play/rounds/:id/finish {bonitos, distance}` ends it once. Server-timed: ≥20 s and ≥3 bonito earns 2 pt, max 10 pt/day; impossible scores rejected; replay- and race-safe. Points can be spent on AI images. The player is an original bonito, not Hoya Boya (animating him needs city approval).
