@@ -110,3 +110,5 @@
 @keyframes bonito-leap{0%{opacity:0;transform:translate(0,16px) rotate(-38deg)}1%{opacity:1;transform:translate(15px,-15px) rotate(-32deg)}3%{opacity:1;transform:translate(65px,-65px) rotate(-8deg)}5%{opacity:1;transform:translate(110px,-70px) rotate(15deg)}7%{opacity:1;transform:translate(150px,-35px) rotate(35deg)}9%{opacity:0;transform:translate(175px,22px) rotate(48deg)}100%{opacity:0;transform:translate(175px,22px) rotate(48deg)}}
 @keyframes bonito-splash{0%,7%{opacity:0;transform:scale(.7)}8.5%{opacity:.85;transform:scale(1)}11%,100%{opacity:0;transform:scale(1.12)}}
 @media(prefers-reduced-motion:reduce){.bonito-water{display:none}.bonito-water>*{animation:none}}
+
+.staff-link{display:inline-flex;min-height:44px;align-items:center;font-size:13px;text-decoration:underline;text-underline-offset:3px;color:#5b6b5c}
