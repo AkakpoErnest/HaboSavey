@@ -15,3 +15,4 @@ export * from "./poll";
 export * from "./points";
 export * from "./game";
 export * from "./imagine";
+export * from "./play";

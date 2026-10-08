@@ -348,6 +348,25 @@ export const pointsLedger = pgTable(
   ],
 );
 
+/**
+ * Rounds of the built-in jumping game (/play). The server stamps start and finish times, so a reward needs a real
+ * round of real length; finishing is a single conditional UPDATE, so a round can be scored (and rewarded) only once.
+ */
+export const gameRounds = pgTable(
+  "game_rounds",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    startedAt: createdAt(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    bonitos: integer("bonitos"),
+    distance: integer("distance"),
+    qualified: boolean("qualified"),
+    pointsAwarded: integer("points_awarded").notNull().default(0),
+  },
+  (t) => [index("game_rounds_user_idx").on(t.userId, t.startedAt)],
+);
+
 /** Stamps/badges earned in partner games (e.g. KesenMemento): one row per (user, app, kind, key). */
 export const gameStamps = pgTable(
   "game_stamps",
