@@ -17,6 +17,25 @@ const PRESETS: {key: Preset; emoji: string; ja: string; en: string}[] = [
 ];
 
 type Step = 'start' | 'generating' | 'pick' | 'done';
+
+/** Playful lines that rotate while the AI paints (takes 30 s – 2 min). */
+const WAIT_LINES: [string, string][] = [
+  ['いま5年後を描いてるよ…', 'Painting the future…'],
+  ['カツオに相談中…🐟', 'Asking the bonito for advice… 🐟'],
+  ['ベンチの位置で悩んでるよ…🪑', 'Agonising over bench placement… 🪑'],
+  ['カモメが通りすぎるのを待ってる…', 'Waiting for the seagulls to move… 🕊️'],
+  ['お花をひとつずつ植えてるよ…🌸', 'Planting flowers one by one… 🌸'],
+  ['夕焼けの色を混ぜてるよ…🌅', 'Mixing the perfect sunset… 🌅'],
+  ['タイムマシン、燃料補給中…⏳', 'Refuelling the time machine… ⏳'],
+  ['さんまを焼く匂いで集中できない…', 'Distracted by grilled sanma… 🔥'],
+  ['もうすぐできるよ！（1〜2分）', 'Almost there! (1–2 min)'],
+];
+
+function WaitingLine({L}: {L: (ja: string, en: string) => string}) {
+  const [i, setI] = useState(0);
+  useEffect(() => { const t = setInterval(() => setI((n) => (n + 1) % WAIT_LINES.length), 3500); return () => clearInterval(t); }, []);
+  return <HoyaBoya pose="wave" height={120} say={L(...WAIT_LINES[i])}/>;
+}
 type Result = {path: string; url: string};
 
 /** "Kesennuma in 5 years": photo → AI visions (points) → OpenAI feedback → submit to the town (immediately public A/B poll). */
@@ -160,8 +179,9 @@ export function Imagine() {
         )}
 
         {step === 'generating' && (
-          <div className="space-y-4 text-center" aria-live="polite">
-            <HoyaBoya pose="wave" height={120} say={L('いま5年後を描いてるよ…（1〜2分）', 'Painting the future… (1–2 min)')}/>
+          <div className="space-y-4 text-center">
+            <p role="status" className="sr-only">{L('AIが画像を作っています。1〜2分かかります。', 'The AI is creating images. This takes 1–2 minutes.')}</p>
+            <WaitingLine L={L}/>
             <div className="grid grid-cols-3 gap-2">{[0, 1, 2].map((i) => <div key={i} className="cs-skeleton aspect-square rounded-2xl"/>)}</div>
           </div>
         )}
