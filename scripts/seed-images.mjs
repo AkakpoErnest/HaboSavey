@@ -1,6 +1,8 @@
-// Draws the two demo poll images (A: today's seawall, B: green waterfront) into local storage.
+// Builds the demo poll images into local storage: Naiwan A/B from the photos in scripts/seed-assets, the rest drawn as SVG.
 import { mkdir, writeFile } from "node:fs/promises";
 import sharp from "sharp";
+
+const photo = (file) => sharp(`scripts/seed-assets/${file}`).jpeg({ quality: 86 }).toBuffer();
 
 const W = 1200, H = 800;
 const sky = `<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe3ea"/><stop offset="1" stop-color="#eef3ee"/></linearGradient>
@@ -84,8 +86,8 @@ ${[300, 640, 980].map((x) => lantern(x).replaceAll('y="470"', 'y="500"').replace
 </svg>`;
 
 const images = {
-  "naiwan-a.jpg": await sharp(Buffer.from(A)).jpeg({ quality: 88 }).toBuffer(),
-  "naiwan-b.jpg": await sharp(Buffer.from(B)).jpeg({ quality: 88 }).toBuffer(),
+  "naiwan-a.jpg": await photo("naiwan-a.png"),
+  "naiwan-b.jpg": await photo("naiwan-b.png"),
   "park-a.jpg": await sharp(Buffer.from(PARK_A)).jpeg({ quality: 88 }).toBuffer(),
   "park-b.jpg": await sharp(Buffer.from(PARK_B)).jpeg({ quality: 88 }).toBuffer(),
   "street-a.jpg": await sharp(Buffer.from(STREET_A)).jpeg({ quality: 88 }).toBuffer(),

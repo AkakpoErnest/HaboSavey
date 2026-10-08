@@ -55,8 +55,8 @@ insert into public.polls (id, slug, featured, title_ja, title_en, question_ja, q
    '内湾の遊歩道、あなたはどちらの案がいいですか？', 'Which design do you prefer for the Naiwan promenade?',
    '市では内湾の遊歩道の改修を検討しています。あなたの声を聞かせてください。',
    'The city is considering a renovation of the Naiwan promenade. Tell us what you think.',
-   'seed/naiwan-a.jpg', '今の防潮堤のまま', 'Keep the current seawall',
-   'seed/naiwan-b.jpg', '木とベンチのある遊歩道', 'Promenade with trees and benches',
+   'seed/naiwan-a.jpg', '木のデッキと木の屋根', 'Wooden deck and timber pergola',
+   'seed/naiwan-b.jpg', '石畳とスチールの屋根', 'Stone paving and steel pergola',
    '00000000-0000-4000-8000-000000000001', 'open', 'after_vote')
 on conflict (id) do nothing;
 
