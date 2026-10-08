@@ -5,7 +5,7 @@ import { cleanImage } from "@/lib/privacy/clean-image";
 import { download, upload, type Bucket } from "@/lib/storage";
 import { getImageEditor } from "./image-editor";
 import { moderateText } from "./moderation";
-import { buildEditInstruction, VARIANT_HINTS } from "./prompt";
+import { buildEditInstruction, preserveSourceScene, VARIANT_HINTS } from "./prompt";
 
 export const DAILY_LIMIT = Number(process.env.GENERATIONS_PER_USER_PER_DAY ?? 10);
 
@@ -51,7 +51,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
     const original = await cleanImage(await download(src, job.originalImagePath));
     await upload(src, job.originalImagePath, original, "image/jpeg");
 
-    const instruction = job.rawPrompt ? job.prompt.trim() : await buildEditInstruction(job.prompt, job.presets as Preset[]);
+    const instruction = job.rawPrompt ? preserveSourceScene(job.prompt) : await buildEditInstruction(job.prompt, job.presets as Preset[]);
     const settled = await Promise.allSettled(
       Array.from({ length: job.variants }, (_, i) =>
         editor.edit(original, "image/jpeg", `${instruction} ${VARIANT_HINTS[i % VARIANT_HINTS.length]}`.trim()),

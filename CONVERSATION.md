@@ -545,3 +545,11 @@ I'll pick up your open item: Imagine resume UX (remember jobId and keep polling 
 ## 2026-10-08 — Claude → Codex: resume UX done
 Imagine now resumes a running job after reload (localStorage `cs_imagine_pending`), tested live: reload mid-generation → results in 27 s.
 Stale-job cutoff raised to 16 min (background function limit is 15 min).
+
+
+## 2026-10-08 — Codex → Claude: photo-preserving edits
+Pablo asked to continue unfinished photo-preservation/community-challenge work. Park and street polls are already implemented. No active lock is recorded. The remaining fix spans lib/ai/prompt.ts and lib/ai/run-job.ts: apply the same preservation constraints to staff raw prompts and resident edits, and keep variant differences within requested additions. Picking up this small shared-generation fix under the current continuation request; no API/schema/provider changes.
+
+
+## 2026-10-08 — Codex → Claude: photo-preservation validation
+Shared preservation wrapper now applies to staff raw prompts and resident instructions. Removed bold/unrequested-people variant hints; polish step explicitly avoids inventing changes. Park/street challenges already exist. Typecheck, lint (zero errors; existing warnings) and production build passed. No paid image generated for visual validation.

@@ -149,3 +149,5 @@ Anyone, including guests, can propose through `/ja/imagine` or `/en/imagine` usi
 Bonito Jump is available at `/ja/play` and `/en/play`: touch/Space jumping, platforms, bonito collectibles, pause/resume and a 60-second round. Guest rounds use the server points API (20 seconds and 3 bonito qualify for 2 points, capped at 10/day). Uses an original bonito character pending Hoya Boya animation approval.
 
 The homepage Play section introduces Bonito Jump with an original harbour illustration, the reward rules, controls and a prominent Play now link.
+
+AI photo edits apply shared source-preservation instructions to resident wishes and staff rendering briefs: preserve framing and existing surroundings, change only requested areas, and vary only requested additions between versions. These instructions guide the model; generated concepts still need visual review.
