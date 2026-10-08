@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
-import { after } from "next/server";
 import { ImagineGenerateInput, type ImagineGenerateResponse } from "@/lib/schemas";
 import { HttpError, ok, parseJson, route } from "@/lib/api/http";
-import { DAILY_LIMIT, generationsToday, runGenerationJob } from "@/lib/ai/run-job";
+import { DAILY_LIMIT, generationsToday } from "@/lib/ai/run-job";
+import { dispatchJob } from "@/lib/ai/dispatch";
 import { requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
-import { IMAGINE_COST, pointsBalance, refundPoints, spendPoints } from "@/lib/points";
+import { IMAGINE_COST, pointsBalance, spendPoints } from "@/lib/points";
 import { ownsPath } from "@/lib/storage";
 
 export const maxDuration = 120;
@@ -29,10 +29,6 @@ export const POST = route(async (req) => {
     throw new HttpError("forbidden", `This needs ${IMAGINE_COST} pt. Vote in a poll to earn points!`);
   }
 
-  after(async () => {
-    await runGenerationJob(job.id);
-    const [done] = await getDb().select({ status: schema.generationJobs.status }).from(schema.generationJobs).where(eq(schema.generationJobs.id, job.id));
-    if (done?.status === "failed") await refundPoints(user.id, IMAGINE_COST, job.id);
-  });
+  await dispatchJob(job.id);
   return ok<ImagineGenerateResponse>({ jobId: job.id, cost: IMAGINE_COST, balance: await pointsBalance(user.id) }, { status: 202 });
 });

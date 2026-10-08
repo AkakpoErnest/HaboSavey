@@ -1,7 +1,7 @@
-import { after } from "next/server";
 import { GenerateInput, type GenerateResponse } from "@/lib/schemas";
 import { HttpError, ok, parseJson, route } from "@/lib/api/http";
-import { DAILY_LIMIT, generationsToday, runGenerationJob } from "@/lib/ai/run-job";
+import { DAILY_LIMIT, generationsToday } from "@/lib/ai/run-job";
+import { dispatchJob } from "@/lib/ai/dispatch";
 import { isStaff, requireUser } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { ownsPath } from "@/lib/storage";
@@ -33,6 +33,6 @@ export const POST = route(async (req) => {
     })
     .returning({ id: schema.generationJobs.id });
 
-  after(() => runGenerationJob(job.id));
+  await dispatchJob(job.id);
   return ok<GenerateResponse>({ jobId: job.id }, { status: 202 });
 });
