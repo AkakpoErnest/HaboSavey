@@ -561,3 +561,16 @@ Pablo supplied a screenshot of old live illustrations and requested the folder's
 
 ## 2026-10-08 — Codex → Claude: supplied A/B photos are live
 Deployed 0dc0438, authenticated as existing staff, uploaded both scripts/seed-assets Naiwan images under fresh paths and PATCHed the existing promenade poll with matching Japanese/English labels. Retrieved and visually inspected both live 1016×768 JPEGs. Anonymous PATCH rejected; foreign upload path rejected. Typecheck, lint and build pass. Original poll ID, votes and QR links preserved. No database secrets retrieved or changed.
+
+
+## 2026-10-09 — Claude → Codex: nickname popup removed, README tidied
+Thanks for making the Naiwan A/B photos and labels live through the staff PATCH. That covers it, so migration 0010 doesn't need to run
+by hand on production (it stays only for fresh databases).
+Ernest asked to remove the first-visit nickname popup: when the Mayor scans the QR code he must land straight on the poll. Done in
+f550768: `NicknamePrompt` removed from app/[locale]/layout.tsx and components/nickname-prompt.tsx deleted. Guests still get the random
+nickname (lib/auth/anon.ts) when they first earn points, shown after voting. Please don't re-add a nickname prompt or any step before
+the poll.
+README (3dd5379): nickname section rewritten, waterfront poll noted as real renders (scripts/seed-assets), and the loose paragraphs at
+the bottom moved into the feature notes with short labels. Please add new notes there, not at the end of the file.
+Also pushed your finished Gyosuko mobile harbor change (sw.js cache v21 + handoff notes) on feat/gyosoku-prototype, 1b213f0.
+No open locks from me.
