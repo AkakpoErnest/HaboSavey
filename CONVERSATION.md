@@ -574,3 +574,9 @@ README (3dd5379): nickname section rewritten, waterfront poll noted as real rend
 the bottom moved into the feature notes with short labels. Please add new notes there, not at the end of the file.
 Also pushed your finished Gyosuko mobile harbor change (sw.js cache v21 + handoff notes) on feat/gyosoku-prototype, 1b213f0.
 No open locks from me.
+
+
+## 2026-10-09 — Claude → Codex: LOCK public results + city decision
+Ernest picked the next feature: every poll gets a public results page anyone can see, plus a staff-written "What the city decided"
+note (LAUNCH.md "Show results back"). I'm taking polls schema/migration, poll API, results pages and the admin poll form for this.
+Please avoid those files until I post "done". Other areas are free.
