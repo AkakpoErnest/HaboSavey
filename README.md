@@ -23,7 +23,7 @@ goes live in the game once Silesh adds the kit.
 |---|---|---|
 | **A/B polls (core)** | Staff upload image A and B; a QR code is generated (PNG/SVG/print). Citizens scan, compare and vote **on one page with no sign-up** (one vote per device, changeable while open). Each poll has a memorable URL; the featured poll is at `/ja/poll` (what demo flyers point to). The list page skips straight to the poll when only one is open. Old `/p/<id>` links redirect. | `/ja/poll`, `/ja/poll/<slug>` (e.g. `/ja/poll/promenade`), `/q/<code>` |
 | **Imagine in 5 years** | Snap a place, pick themes and write a wish; AI renders **3 visions** of it in 5 years (costs points, default 10 pt, refunded on failure), then **OpenAI gives feedback** (strengths, practical considerations, questions for the city). "Propose to the town" creates an **open A/B poll** (today vs the vision), immediately available for everyone to vote on. Demo images/feedback until switched on. **Live status (2026-10-07):** real AI is on, using Kit's OpenAI key with credits (images `gpt-image-2`, feedback `gpt-5-mini`). If OpenAI is unavailable, images fail with a points refund and feedback falls back to labelled demo text. | `/ja/imagine`, `/api/imagine/*`, `lib/ai/feedback.ts` |
-| **Challenges on the homepage** | The three homepage cards are real, open A/B polls: waterfront → `/ja/poll/promenade` (featured, the flyer poll), neighbourhood park → `/ja/poll/park`, town-centre street → `/ja/poll/street` (illustrations from `scripts/seed-images.mjs`; QR codes `/q/parkab`, `/q/streetab`). Each has a live results screen at `/ja/poll/<slug>/result`. | `components/home.tsx`, `db/migrations/0009_zz_seed_challenges.sql` |
+| **Challenges on the homepage** | The three homepage cards are real, open A/B polls: waterfront → `/ja/poll/promenade` (featured, the flyer poll), neighbourhood park → `/ja/poll/park`, town-centre street → `/ja/poll/street` (the waterfront poll uses real renders, A wooden deck with timber pergola vs B stone paving with steel pergola, from `scripts/seed-assets/naiwan-a.png` / `naiwan-b.png`; park and street are illustrations; all built by `scripts/seed-images.mjs`; QR codes `/q/parkab`, `/q/streetab`). Each has a live results screen at `/ja/poll/<slug>/result`. | `components/home.tsx`, `db/migrations/0009_zz_seed_challenges.sql` |
 | **Thank-you** | After voting: "ありがとう！はまらいんや！" with Hoya Boya, the points just earned, and a link to the points page. The question is not repeated. | same URL |
 | **Live results (presentation)** | Big projector view of the vote count and percentages, refreshing every 3 s, with a QR code to vote. Staff sign-in required. | `/ja/poll/result`, `/ja/poll/<slug>/result` |
 | **Results (admin)** | Totals, votes per day, and votes per channel (each poster/newsletter/web QR code), plus CSV export (Excel-ready Japanese). | `/ja/admin/polls/<id>` |
@@ -54,14 +54,30 @@ goes live in the game once Silesh adds the kit.
 
 **AI image reliability:** OpenAI images use `quality: medium` (override with `OPENAI_IMAGE_QUALITY`) so jobs finish inside Netlify's function time limit. A job unfinished after 3 minutes is marked failed and its points refunded.
 
-**Nickname on first visit:** a small popup asks 「ニックネームは？」 once per device (skippable with 「あとで」). Saving creates the guest account with that name; skipping keeps the random fish nickname given at the first vote. Not shown on the results, staff, sign-in or connect screens.
+**No nickname popup:** visitors are never asked for a nickname. Scanning a QR code opens the poll straight away (important for the Mayor's demo). Anyone who earns points quietly gets a random Kesennuma nickname (e.g. さんま#4821), shown after voting and on the points page.
+
+**Points page:** Points-page guidance follows API eligibility for guest/open earning and verified-resident modes. Visitors can enter a poll or sign in; the header offers “View points” when no balance is available.
+
+**Bonito leap:** The homepage footer includes an occasional decorative bonito leap (roughly every 24 seconds). It pauses offscreen or in hidden tabs and is disabled for reduced-motion preferences.
+
+**Staff image previews:** Staff AI image generation defaults to one preview per request; staff can still choose 2–4 variants when needed.
+
+**Proposals from anyone:** Anyone, including guests, can propose through `/ja/imagine` or `/en/imagine` using the existing points flow. New submissions open immediately for public voting and return a shareable poll link. Non-staff visitors to `/admin/polls` are redirected to this public flow; poll administration remains restricted.
+
+**Bonito Jump:** Bonito Jump is available at `/ja/play` and `/en/play`: touch/Space jumping, platforms, bonito collectibles, pause/resume and a 60-second round. Guest rounds use the server points API (20 seconds and 3 bonito qualify for 2 points, capped at 10/day). Uses an original bonito character pending Hoya Boya animation approval.
+
+**Play section:** The homepage Play section introduces Bonito Jump with an original harbour illustration, the reward rules, controls and a prominent Play now link.
+
+**AI photo edits:** AI photo edits apply shared source-preservation instructions to resident wishes and staff rendering briefs: preserve framing and existing surroundings, change only requested areas, and vary only requested additions between versions. These instructions guide the model; generated concepts still need visual review.
+
+**Replacing poll images:** Staff poll updates support replacing A/B images and bilingual labels through the authenticated poll API, with owned-upload checks and image metadata removal.
 
 **Staff login:** the homepage footer has a 「職員ログイン / Staff login」 link (`/ja/signin?next=/ja/admin/polls`). Staff create polls, QR codes and AI images there and open the live results screen.
 
 ## Demo script (Kit's presentation)
 
 1. Flyers show the A/B images and a QR code to **`https://<host>/ja/poll`** (print it from `/ja/admin/polls/<poll>`, or any QR generator).
-2. The audience scans, picks A or B and submits, fully anonymously. They see "ありがとう！はまらいんや！", **+10 pt** and their
+2. The audience scans and lands directly on the poll (no sign-up, no nickname question), picks A or B and submits, fully anonymously. They see "ありがとう！はまらいんや！", **+10 pt** and their
    nickname (with `POINTS_OPEN_EARNING=1`), plus links to their points (personal link for other phones) and to the game.
 3. At the end, open **`https://<host>/ja/poll/result`** on the projector, signed in with the staff email, to show the live count.
 
@@ -137,19 +153,3 @@ same push.
 [ARCHITECTURE.md](ARCHITECTURE.md) (design + API contract) · [docs/POINTS-AND-GAME.md](docs/POINTS-AND-GAME.md) · [docs/points-chain-options.md](docs/points-chain-options.md) · [docs/LAUNCH.md](docs/LAUNCH.md) (public launch plan) · [docs/city-application-hoyaboya.md](docs/city-application-hoyaboya.md) (Hoya Boya approval request, draft) ·
 [integrations/kesenmemento/INTEGRATION.md](integrations/kesenmemento/INTEGRATION.md) · coordination between Claude and Codex/GPT:
 [CONVERSATION.md](CONVERSATION.md), [HANDOFF.md](HANDOFF.md).
-
-Points-page guidance follows API eligibility for guest/open earning and verified-resident modes. Visitors can enter a poll or sign in; the header offers “View points” when no balance is available.
-
-The homepage footer includes an occasional decorative bonito leap (roughly every 24 seconds). It pauses offscreen or in hidden tabs and is disabled for reduced-motion preferences.
-
-Staff AI image generation defaults to one preview per request; staff can still choose 2–4 variants when needed.
-
-Anyone, including guests, can propose through `/ja/imagine` or `/en/imagine` using the existing points flow. New submissions open immediately for public voting and return a shareable poll link. Non-staff visitors to `/admin/polls` are redirected to this public flow; poll administration remains restricted.
-
-Bonito Jump is available at `/ja/play` and `/en/play`: touch/Space jumping, platforms, bonito collectibles, pause/resume and a 60-second round. Guest rounds use the server points API (20 seconds and 3 bonito qualify for 2 points, capped at 10/day). Uses an original bonito character pending Hoya Boya animation approval.
-
-The homepage Play section introduces Bonito Jump with an original harbour illustration, the reward rules, controls and a prominent Play now link.
-
-AI photo edits apply shared source-preservation instructions to resident wishes and staff rendering briefs: preserve framing and existing surroundings, change only requested areas, and vary only requested additions between versions. These instructions guide the model; generated concepts still need visual review.
-
-Staff poll updates support replacing A/B images and bilingual labels through the authenticated poll API, with owned-upload checks and image metadata removal.
